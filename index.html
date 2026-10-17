@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="so">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Favicon: use the logo.jpg copied to /public as logo.jpg -->
+    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── SEO ── -->
+    <title>Internetka Bilaaha | Xidhmooyinka Internet-ka</title>
+    <meta name="description" content="Baro xidhmooyinka internet-ka ee Internetka Bilaaha: xidhmo bille ah, isbuucle ah, iyo maalinle ah. Kana soo xidhiidh baraha bulshada si aad u dalbato adeegga." />
+    <meta name="keywords" content="internet, xidhmo, bilaaha, somali, internetka, packages, adeeg" />
+    <meta name="author" content="Internetka Bilaaha" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- ── Open Graph ── -->
+    <meta property="og:title" content="Internetka Bilaaha | Xidhmooyinka Internet-ka" />
+    <meta property="og:description" content="Hel xidhmo internet oo tayo leh, qiimo jaban, iyo xawaare sare." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="so_SO" />
+
+    <!-- ── Content Security Policy ── -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: blob:;
+        connect-src 'self';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        frame-ancestors 'none';
+      "
+    />
+
+    <!-- ── X-Frame-Options (legacy CSP) ── -->
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+    <!-- ── Google Fonts: Inter ── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+/* ============================================================
+   CONTACT / SOCIAL BUTTONS SECTION
+   ============================================================ */
+
+.contact {
+  /* Soft, eye-friendly deep teal-to-slate gradient */
+  background: linear-gradient(160deg, #0a1628 0%, #0d2137 40%, #0f2d40 70%, #0a1e2e 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle ambient glow blobs — easy on the eyes */
+.contact::before {
+  content: '';
+  position: absolute;
+  top: -120px; left: -120px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.contact::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 450px; height: 450px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.contact__header {
+  text-align: center;
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+/* Override section title/desc colors for dark bg */
+.contact .section-label {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.25);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.contact .section-title {
+  color: #e8f4f8;
+}
+
+.contact .section-desc {
+  color: #94b8c8;
+}
+
+/* ---- Notice for unconfigured links ---- */
+.contact__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 32px;
+  font-size: 0.88rem;
+  color: #fde68a;
+  line-height: 1.5;
+}
+
+.contact__notice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #F59E0B;
+}
+
+/* ---- Social Buttons Grid ---- */
+.social-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 2.5vw, 24px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Individual Social Button ---- */
+.social-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: clamp(22px, 3vw, 32px) 16px;
+  border-radius: var(--radius-lg);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--color-white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
+
+.social-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  transition: background var(--transition);
+}
+
+.social-btn:hover::before {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.social-btn:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+.social-btn:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 3px;
+}
+
+/* Platform colors */
+.social-btn--telegram {
+  background: linear-gradient(135deg, #005f99, #0088CC, #29B5E8);
+}
+
+.social-btn--whatsapp {
+  background: linear-gradient(135deg, #075e54, #128C7E, #25D366);
+}
+
+/* Phone Call — vivid green, stands out */
+.social-btn--phone {
+  background: linear-gradient(135deg, #047857, #059669, #10b981);
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.3);
+}
+
+.social-btn--phone:hover {
+  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.45);
+}
+
+/* Pulse ring animation on the phone icon */
+.social-btn--phone .social-btn__icon {
+  position: relative;
+}
+
+.social-btn--phone .social-btn__icon::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(52, 211, 153, 0.6);
+  animation: phone-pulse 1.8s ease-out infinite;
+}
+
+@keyframes phone-pulse {
+  0%   { transform: scale(0.85); opacity: 0.8; }
+  70%  { transform: scale(1.4);  opacity: 0; }
+  100% { transform: scale(0.85); opacity: 0; }
+}
+
+.social-btn--instagram {
+  background: linear-gradient(135deg, #833AB4, #FD1D1D, #F77737);
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+}
+
+.social-btn--instagram:hover {
+  background-position: 100% 50%;
+}
+
+/* Disabled state */
+.social-btn--disabled,
+.social-btn[disabled],
+.social-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.3);
+}
+
+.social-btn--disabled:hover::before,
+.social-btn[aria-disabled="true"]:hover::before {
+  background: rgba(255,255,255,0) !important;
+}
+
+/* Icon wrapper */
+.social-btn__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Label */
+.social-btn__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.social-btn__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.social-btn__status {
+  font-size: 0.72rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .social-buttons {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .social-buttons {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .social-btn {
+    padding: 18px 10px;
+  }
+
+  .social-btn__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .social-btn__name { font-size: 0.85rem; }
+}

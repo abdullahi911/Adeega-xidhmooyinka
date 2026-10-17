@@ -1,0 +1,224 @@
+/* ============================================================
+   NAVBAR — Sticky Navigation Bar
+   ============================================================ */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 12px rgba(7, 27, 58, 0.07);
+  transition: box-shadow var(--transition);
+}
+
+.navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(7, 27, 58, 0.12);
+}
+
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+  gap: 24px;
+}
+
+/* ---- Brand ---- */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navbar__logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.navbar__name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.navbar__name-main {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  letter-spacing: 0.01em;
+}
+
+.navbar__name-sub {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--color-blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- Desktop Nav Links ---- */
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.navbar__link {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition);
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.navbar__link:hover,
+.navbar__link:focus-visible {
+  color: var(--color-blue);
+  background: var(--color-blue-light);
+  outline: none;
+}
+
+.navbar__link:focus-visible {
+  outline: 2px solid var(--color-blue);
+}
+
+/* ---- CTA Button ---- */
+.navbar__cta {
+  flex-shrink: 0;
+}
+
+/* ---- Hamburger ---- */
+.navbar__hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  gap: 5px;
+  transition: background var(--transition);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.navbar__hamburger:hover {
+  background: var(--color-blue-light);
+}
+
+.navbar__hamburger:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+.navbar__hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--color-navy);
+  border-radius: 2px;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.navbar__hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.navbar__hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.navbar__hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ---- Mobile Menu ---- */
+.navbar__mobile {
+  display: none;
+  flex-direction: column;
+  background: var(--color-white);
+  border-top: 1px solid var(--color-border);
+  padding: 12px 0 18px;
+  animation: slideDown 0.24s ease;
+}
+
+.navbar__mobile.open {
+  display: flex;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.navbar__mobile-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-navy);
+  padding: 12px var(--container-pad);
+  transition: background var(--transition), color var(--transition);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.navbar__mobile-link:hover,
+.navbar__mobile-link:focus-visible {
+  background: var(--color-blue-light);
+  color: var(--color-blue);
+  outline: none;
+}
+
+.navbar__mobile-cta {
+  margin: 10px var(--container-pad) 0;
+  width: calc(100% - 2 * var(--container-pad));
+  text-align: center;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .navbar__links,
+  .navbar__cta {
+    display: none;
+  }
+
+  .navbar__hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar__name-main {
+    font-size: 0.82rem;
+  }
+  .navbar__logo {
+    width: 38px;
+    height: 38px;
+  }
+}

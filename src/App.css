@@ -1,0 +1,12 @@
+/* App.css — intentionally minimal; all styles live in index.css and src/styles/ */
+
+/* Prevent any residual layout shift */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main#main-content {
+  flex: 1;
+}
