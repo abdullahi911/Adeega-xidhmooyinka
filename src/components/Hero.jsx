@@ -118,7 +118,7 @@ export default function Hero() {
             </div>
             <div className="hero__stat">
               <span className="hero__stat-value">24/7</span>
-              <span className="hero__stat-label">Taageero</span>
+              <span className="hero__stat-label">Xiliwalba</span>
             </div>
             <div className="hero__stat">
               <span className="hero__stat-value">100%</span>
