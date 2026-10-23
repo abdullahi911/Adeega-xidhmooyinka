@@ -1,12 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import '../styles/Navbar.css';
 import logoImg from '../assets/logo.jpg';
-
-const NAV_LINKS = [
-  { label: 'Home',              id: 'home' },
-  { label: 'Internet Packages', id: 'packages' },
-  { label: 'Contact Us',        id: 'contact' },
-];
+import { useLang } from '../context/LanguageContext.jsx';
 
 function smoothScrollTo(id) {
   const el = document.getElementById(id);
@@ -16,6 +11,13 @@ function smoothScrollTo(id) {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled]  = useState(false);
+  const { t, toggleLang } = useLang();
+
+  const NAV_LINKS = [
+    { label: t('nav_home'),     id: 'home' },
+    { label: t('nav_packages'), id: 'packages' },
+    { label: t('nav_contact'),  id: 'contact' },
+  ];
 
   useEffect(() => {
     const onResize = () => { if (window.innerWidth > 768) setMenuOpen(false); };
@@ -73,14 +75,24 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Desktop CTA */}
+          {/* Desktop CTA + Lang toggle */}
           <div className="navbar__cta">
+            <button
+              className="navbar__lang-btn"
+              onClick={toggleLang}
+              aria-label="Switch language"
+              title="Switch language"
+              id="navbar-lang-toggle"
+            >
+              <span className="navbar__lang-flag">{t('lang_btn_flag')}</span>
+              <span className="navbar__lang-label">{t('lang_btn_label')}</span>
+            </button>
             <button
               className="btn btn-primary"
               onClick={() => handleLink('contact')}
               id="navbar-get-connected"
             >
-              Get Connected
+              {t('nav_cta')}
             </button>
           </div>
 
@@ -116,12 +128,21 @@ export default function Navbar() {
               {label}
             </button>
           ))}
+          {/* Mobile lang toggle */}
+          <button
+            className="navbar__mobile-lang"
+            onClick={() => { toggleLang(); setMenuOpen(false); }}
+            tabIndex={menuOpen ? 0 : -1}
+            id="mobile-lang-toggle"
+          >
+            {t('lang_btn_flag')} {t('lang_btn_label')}
+          </button>
           <button
             className="btn btn-primary navbar__mobile-cta"
             onClick={() => handleLink('contact')}
             tabIndex={menuOpen ? 0 : -1}
           >
-            Get Connected
+            {t('nav_cta')}
           </button>
         </div>
       </nav>

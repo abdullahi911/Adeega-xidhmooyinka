@@ -18,7 +18,78 @@
 
 .packages__header {
   text-align: center;
-  margin-bottom: clamp(36px, 5vw, 60px);
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+/* ---- Provider Switcher ---- */
+.provider-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: clamp(28px, 4vw, 48px);
+  flex-wrap: wrap;
+}
+
+.provider-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 28px;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: 2px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.22s ease;
+  white-space: nowrap;
+  box-shadow: 0 1px 6px rgba(7, 27, 58, 0.06);
+  letter-spacing: 0.01em;
+}
+
+.provider-btn:hover {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+  box-shadow: 0 4px 16px rgba(23, 105, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.provider-btn:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+/* Active state */
+.provider-btn--active {
+  background: var(--gradient-primary);
+  color: var(--color-white) !important;
+  border-color: transparent;
+  box-shadow: 0 6px 22px rgba(23, 105, 255, 0.30);
+  transform: translateY(-1px);
+}
+
+.provider-btn--active:hover {
+  box-shadow: 0 8px 28px rgba(23, 105, 255, 0.40);
+  transform: translateY(-2px);
+}
+
+.provider-btn__logo {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.provider-btn__name {
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .provider-btn {
+    padding: 10px 20px;
+    font-size: 0.88rem;
+  }
 }
 
 /* ---- Grid ---- */
@@ -121,12 +192,86 @@
   color: var(--color-blue);
 }
 
+/* Bonus badge (EthioTelecom) */
+.package-card__bonus {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+  letter-spacing: 0.02em;
+}
+
 /* Desc */
 .package-card__desc {
   font-size: 0.95rem;
   color: var(--color-text);
   line-height: 1.6;
   flex: 1;
+}
+
+/* Price block */
+.package-card__price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.package-card__price-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.package-card__price {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 900;
+  color: var(--color-navy);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.package-card__currency {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.package-card__duration {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Feature list */
+.package-card__features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.package-card__feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.package-card__feature svg {
+  color: var(--color-blue);
+  flex-shrink: 0;
 }
 
 /* Divider */

@@ -7,17 +7,12 @@ import {
 import '../styles/Footer.css';
 import logoImg from '../assets/logo.jpg';
 import { socialLinks, isConfigured } from '../config/socialLinks';
+import { useLang } from '../context/LanguageContext.jsx';
 
 function smoothScrollTo(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-
-const QUICK_LINKS = [
-  { label: 'Home',              id: 'home' },
-  { label: 'Internet Packages', id: 'packages' },
-  { label: 'Contact Us',        id: 'contact' },
-];
 
 const SOCIAL_ICONS = [
   { key: 'telegram',  Icon: FaTelegram,  label: 'Telegram'  },
@@ -27,6 +22,14 @@ const SOCIAL_ICONS = [
 ];
 
 export default function Footer() {
+  const { t } = useLang();
+
+  const QUICK_LINKS = [
+    { label: t('nav_home'),     id: 'home' },
+    { label: t('nav_packages'), id: 'packages' },
+    { label: t('nav_contact'),  id: 'contact' },
+  ];
+
   return (
     <footer className="footer" role="contentinfo">
       <div className="container">
@@ -48,7 +51,7 @@ export default function Footer() {
             </div>
 
             <p className="footer__desc">
-              Adeeg internet oo tayo leh, qiimo jaban, iyo xawaare sare.
+              {t('footer_desc')}
             </p>
 
             {/* Social Icons Row */}
@@ -85,7 +88,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <p className="footer__col-title">Xiriirrada Degdega</p>
+            <p className="footer__col-title">{t('footer_quick_links')}</p>
             <nav aria-label="Quick links" className="footer__links">
               {QUICK_LINKS.map(({ label, id }) => (
                 <button
@@ -101,16 +104,16 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <p className="footer__col-title">Adeegyada</p>
+            <p className="footer__col-title">{t('footer_services')}</p>
             <nav aria-label="Services" className="footer__links">
               <button className="footer__link" onClick={() => smoothScrollTo('packages')}>
-                Xidhmo Bille ah
+                {t('footer_svc_monthly')}
               </button>
               <button className="footer__link" onClick={() => smoothScrollTo('packages')}>
-                Xidhmo Isbuucle ah
+                {t('footer_svc_weekly')}
               </button>
               <button className="footer__link" onClick={() => smoothScrollTo('packages')}>
-                Xidhmo Maalinle ah
+                {t('footer_svc_daily')}
               </button>
             </nav>
           </div>
@@ -119,10 +122,10 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="footer__bottom">
           <p className="footer__copyright">
-            © 2026 Internetka Bilaaha. Dhammaan xuquuqda waa la ilaaliyay.
+            {t('footer_copyright')}
           </p>
           <p className="footer__tagline">
-            Adeeg internet oo tayo leh 🌐
+            {t('footer_tagline')}
           </p>
         </div>
       </div>

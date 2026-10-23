@@ -4,6 +4,7 @@ import '../styles/Hero.css';
 import logoImg    from '../assets/logo.jpg';
 import portraitImg from '../assets/portrait.jpg';
 import { socialLinks, isConfigured } from '../config/socialLinks';
+import { useLang } from '../context/LanguageContext.jsx';
 
 function smoothScrollTo(id) {
   const el = document.getElementById(id);
@@ -47,6 +48,7 @@ const SOCIAL_ICONS = [
 
 export default function Hero() {
   const visualRef = useRef(null);
+  const { t } = useLang();
 
   // IntersectionObserver for visual entrance
   useEffect(() => {
@@ -79,18 +81,17 @@ export default function Hero() {
         <div className="hero__content">
           <span className="hero__badge">
             <span className="hero__badge-dot" aria-hidden="true" />
-            Adeegga Internet
+            {t('hero_badge')}
           </span>
 
           <h1 id="hero-heading" className="hero__heading">
-            Soo dhawoow macmiil!{' '}
-            <em>Waxaan kuu haynaa</em>{' '}
-            dhammaan xidhmooyinka internet-ka.
+            {t('hero_heading_1')}{' '}
+            <em>{t('hero_heading_em')}</em>{' '}
+            {t('hero_heading_2')}
           </h1>
 
           <p className="hero__desc">
-            Ka daalac xidhmooyinka internet-ka ee la heli karo oo nala soo xidhiidh
-            si aad u dalbato adeegga.
+            {t('hero_desc')}
           </p>
 
           <div className="hero__actions">
@@ -99,14 +100,14 @@ export default function Hero() {
               onClick={() => smoothScrollTo('packages')}
               id="hero-packages-btn"
             >
-              Daawo Xidhmooyinka
+              {t('hero_btn_packages')}
             </button>
             <button
               className="btn btn-secondary"
               onClick={() => smoothScrollTo('contact')}
               id="hero-contact-btn"
             >
-              Nala Soo Xidhiidh
+              {t('hero_btn_contact')}
             </button>
           </div>
 
@@ -114,15 +115,15 @@ export default function Hero() {
           <div className="hero__stats" aria-label="Macluumaadka adeegga">
             <div className="hero__stat">
               <span className="hero__stat-value">3+</span>
-              <span className="hero__stat-label">Noocyo Xidhmo</span>
+              <span className="hero__stat-label">{t('hero_stat_types')}</span>
             </div>
             <div className="hero__stat">
               <span className="hero__stat-value">24/7</span>
-              <span className="hero__stat-label">Xiliwalba</span>
+              <span className="hero__stat-label">{t('hero_stat_support')}</span>
             </div>
             <div className="hero__stat">
               <span className="hero__stat-value">100%</span>
-              <span className="hero__stat-label">Tayo Sare</span>
+              <span className="hero__stat-label">{t('hero_stat_quality')}</span>
             </div>
           </div>
         </div>
@@ -151,7 +152,7 @@ export default function Hero() {
             </div>
             <div className="hero__portrait-glow" />
 
-            {/* Floating social icons — Telegram, WhatsApp, Facebook, Instagram */}
+            {/* Floating social icons — Telegram, WhatsApp, Phone, Instagram */}
             {SOCIAL_ICONS.map(({ key, Icon, label, className, style, size }) => {
               const url = socialLinks[key];
               const configured = isConfigured(url);
