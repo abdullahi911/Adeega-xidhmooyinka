@@ -1,11 +1,21 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  CalendarDays, Clock, Zap,
-  Wifi, Gauge, ShieldCheck, HeadphonesIcon,
-  Bolt, BadgeDollarSign, Database, Gift,
+  CalendarDays,
+  Clock,
+  Zap,
+  Wifi,
+  Gauge,
+  ShieldCheck,
+  HeadphonesIcon,
+  Bolt,
+  BadgeDollarSign,
+  Database,
+  Gift,
+  Sparkles,
 } from 'lucide-react';
 import '../styles/Packages.css';
 import { useLang } from '../context/LanguageContext.jsx';
+import { packageService } from '../services/db';
 
 function smoothScrollTo(id) {
   const el = document.getElementById(id);
@@ -13,135 +23,71 @@ function smoothScrollTo(id) {
 }
 
 /* ── Provider IDs ── */
-const SAFARICOM    = 'safaricom';
+const SAFARICOM = 'safaricom';
 const ETHIOTELECOM = 'ethiotelecom';
 
 export default function Packages() {
-  const sectionRef                    = useRef(null);
-  const { t }                         = useLang();
-  const [provider, setProvider]       = useState(SAFARICOM);
+  const sectionRef = useRef(null);
+  const { t } = useLang();
+  const [provider, setProvider] = useState(SAFARICOM);
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* ── SafariCom packages (existing, unchanged) ── */
-  const safaricomPackages = [
-    {
-      id: 'bile',
-      Icon: CalendarDays,
-      badge: t('pkg_monthly_badge'),
-      title: t('pkg_monthly_title'),
-      subtitle: t('pkg_monthly_subtitle'),
-      duration: t('pkg_monthly_duration'),
-      price: t('pkg_monthly_price'),
-      currency: t('pkg_monthly_currency'),
-      bonus: null,
-      desc: t('pkg_monthly_desc'),
-      features: [
-        { Icon: Wifi,           label: t('pkg_monthly_feat1') },
-        { Icon: Gauge,          label: t('pkg_monthly_feat2') },
-        { Icon: ShieldCheck,    label: t('pkg_monthly_feat3') },
-        { Icon: HeadphonesIcon, label: t('pkg_monthly_feat4') },
-      ],
-    },
-    {
-      id: 'isbuucle',
-      Icon: Clock,
-      badge: t('pkg_weekly_badge'),
-      title: t('pkg_weekly_title'),
-      subtitle: t('pkg_weekly_subtitle'),
-      duration: t('pkg_weekly_duration'),
-      price: t('pkg_weekly_price'),
-      currency: t('pkg_weekly_currency'),
-      bonus: null,
-      desc: t('pkg_weekly_desc'),
-      features: [
-        { Icon: Wifi,        label: t('pkg_weekly_feat1') },
-        { Icon: Gauge,       label: t('pkg_weekly_feat2') },
-        { Icon: ShieldCheck, label: t('pkg_weekly_feat3') },
-        { Icon: Wifi,        label: t('pkg_weekly_feat4') },
-      ],
-    },
-    {
-      id: 'maalinle',
-      Icon: Zap,
-      badge: t('pkg_daily_badge'),
-      title: t('pkg_daily_title'),
-      subtitle: t('pkg_daily_subtitle'),
-      duration: t('pkg_daily_duration'),
-      price: t('pkg_daily_price'),
-      currency: t('pkg_daily_currency'),
-      bonus: null,
-      desc: t('pkg_daily_desc'),
-      features: [
-        { Icon: Wifi,            label: t('pkg_daily_feat1') },
-        { Icon: Bolt,            label: t('pkg_daily_feat2') },
-        { Icon: Zap,             label: t('pkg_daily_feat3') },
-        { Icon: BadgeDollarSign, label: t('pkg_daily_feat4') },
-      ],
-    },
-  ];
-
-  /* ── EthioTelecom packages (from supplied image) ── */
-  const ethiotelecomPackages = [
-    {
-      id: 'et-monthly',
-      Icon: CalendarDays,
-      badge: t('et_monthly_badge'),
-      title: t('et_monthly_title'),
-      subtitle: t('et_monthly_subtitle'),
-      duration: t('et_monthly_duration'),
-      price: t('et_monthly_price'),
-      currency: t('et_monthly_currency'),
-      bonus: t('et_monthly_bonus'),
-      desc: t('et_monthly_desc'),
-      features: [
-        { Icon: Wifi,        label: t('et_monthly_feat1') },
-        { Icon: Gauge,       label: t('et_monthly_feat2') },
-        { Icon: Gift,        label: t('et_monthly_feat3') },
-        { Icon: Zap,         label: t('et_monthly_feat4') },
-      ],
-    },
-    {
-      id: 'et-weekly',
-      Icon: Clock,
-      badge: t('et_weekly_badge'),
-      title: t('et_weekly_title'),
-      subtitle: t('et_weekly_subtitle'),
-      duration: t('et_weekly_duration'),
-      price: t('et_weekly_price'),
-      currency: t('et_weekly_currency'),
-      bonus: t('et_weekly_bonus'),
-      desc: t('et_weekly_desc'),
-      features: [
-        { Icon: Wifi,        label: t('et_weekly_feat1') },
-        { Icon: Gauge,       label: t('et_weekly_feat2') },
-        { Icon: Gift,        label: t('et_weekly_feat3') },
-        { Icon: ShieldCheck, label: t('et_weekly_feat4') },
-      ],
-    },
-    {
-      id: 'et-bundle',
-      Icon: Database,
-      badge: t('et_daily_badge'),
-      title: t('et_daily_title'),
-      subtitle: t('et_daily_subtitle'),
-      duration: t('et_daily_duration'),
-      price: t('et_daily_price'),
-      currency: t('et_daily_currency'),
-      bonus: t('et_daily_bonus'),
-      desc: t('et_daily_desc'),
-      features: [
-        { Icon: Database,        label: t('et_daily_feat1') },
-        { Icon: Gauge,           label: t('et_daily_feat2') },
-        { Icon: CalendarDays,    label: t('et_daily_feat3') },
-        { Icon: BadgeDollarSign, label: t('et_daily_feat4') },
-      ],
-    },
-  ];
-
-  const PACKAGES = provider === SAFARICOM ? safaricomPackages : ethiotelecomPackages;
+  // Fetch packages from database
+  const loadPackages = useCallback(async () => {
+    try {
+      const allActive = await packageService.getAll({ onlyActive: true });
+      setPackages(allActive || []);
+    } catch (err) {
+      console.error('Failed to load packages:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
+    loadPackages();
+
+    const handleDbChange = () => {
+      loadPackages();
+    };
+
+    window.addEventListener('xirmo:db_change', handleDbChange);
+    window.addEventListener('storage', handleDbChange);
+
+    return () => {
+      window.removeEventListener('xirmo:db_change', handleDbChange);
+      window.removeEventListener('storage', handleDbChange);
+    };
+  }, [loadPackages]);
+
+  // Filter packages for selected provider
+  const currentPackages = packages.filter((pkg) => {
+    const pkgProv = (pkg.provider || '').toLowerCase();
+    return pkgProv === provider;
+  });
+
+  // Choose icon based on category or duration
+  const getPackageIcon = (pkg) => {
+    const cat = (pkg.category || '').toLowerCase();
+    const dur = (pkg.duration || '').toLowerCase();
+    if (cat === 'monthly' || dur.includes('bil') || dur.includes('month')) return CalendarDays;
+    if (cat === 'weekly' || dur.includes('isbuuc') || dur.includes('toddobaad') || dur.includes('week')) return Clock;
+    if (cat === 'daily' || dur.includes('maalin') || dur.includes('day')) return Zap;
+    if (pkg.id?.includes('bundle') || pkg.name?.toLowerCase().includes('codka')) return Database;
+    return Wifi;
+  };
+
+  // Feature icon picker
+  const getFeatureIcon = (idx) => {
+    const icons = [Wifi, Gauge, ShieldCheck, HeadphonesIcon, Bolt, BadgeDollarSign, Sparkles];
+    return icons[idx % icons.length];
+  };
+
+  // Card reveal animation
+  useEffect(() => {
     const cards = sectionRef.current?.querySelectorAll('.package-card');
-    if (!cards) return;
+    if (!cards || cards.length === 0) return;
 
     const obs = new IntersectionObserver(
       (entries) => {
@@ -163,7 +109,7 @@ export default function Packages() {
     });
 
     return () => obs.disconnect();
-  }, [provider]); // re-run animation when provider changes
+  }, [provider, currentPackages]);
 
   return (
     <section id="packages" className="packages section" aria-labelledby="packages-heading">
@@ -201,60 +147,100 @@ export default function Packages() {
           </button>
         </div>
 
-        {/* ── Package Cards ── */}
-        <div className="packages__grid" role="list">
-          {PACKAGES.map(({ id, Icon, badge, title, subtitle, duration, price, currency, bonus, desc, features }) => (
-            <article key={id} className="package-card" role="listitem">
-              <div className="package-card__icon-wrap" aria-hidden="true">
-                <Icon size={30} strokeWidth={1.7} />
-              </div>
+        {/* ── Loading state ── */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text)' }}>
+            <div className="admin-spinner" style={{ margin: '0 auto 1rem', width: 28, height: 28, borderColor: '#1769FF', borderTopColor: 'transparent' }} />
+            <p>Xirmooyinka ayaa la soo shubayaa...</p>
+          </div>
+        )}
 
-              <span className="package-card__badge">{badge}</span>
+        {/* ── Package Cards Grid ── */}
+        {!loading && currentPackages.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text)' }}>
+            <p>Hadda ma jiraan xirmooyin firfircoon oo loogu talagalay bixiyahan.</p>
+          </div>
+        ) : (
+          <div className="packages__grid" role="list">
+            {currentPackages.map((pkg) => {
+              const Icon = getPackageIcon(pkg);
+              const featuresList = Array.isArray(pkg.features)
+                ? pkg.features
+                : [];
 
-              <h3 className="package-card__title">{title}</h3>
-              <p className="package-card__subtitle">{subtitle}</p>
+              const dataDisplay =
+                pkg.data_amount && pkg.data_amount !== 'Unlimited'
+                  ? `${pkg.data_amount} ${pkg.data_unit && pkg.data_unit !== 'Unlimited' ? pkg.data_unit : ''}`
+                  : null;
 
-              {/* Bonus badge — EthioTelecom only */}
-              {bonus && (
-                <span className="package-card__bonus">
-                  <Gift size={13} aria-hidden="true" />
-                  {bonus}
-                </span>
-              )}
+              return (
+                <article key={pkg.id} className="package-card" role="listitem">
+                  <div className="package-card__icon-wrap" aria-hidden="true">
+                    <Icon size={30} strokeWidth={1.7} />
+                  </div>
 
-              {/* Price display */}
-              <div className="package-card__price-wrap">
-                <div className="package-card__price-inner">
-                  <span className="package-card__price">{price}</span>
-                  <span className="package-card__currency">{currency}</span>
-                </div>
-                <span className="package-card__duration">/ {duration}</span>
-              </div>
+                  <span className="package-card__badge">
+                    {pkg.badge || (pkg.category ? `Xirmo ${pkg.category}` : 'Xirmo Internet')}
+                  </span>
 
-              <div className="package-card__divider" aria-hidden="true" />
+                  <h3 className="package-card__title">{pkg.name || pkg.title}</h3>
+                  <p className="package-card__subtitle">{pkg.subtitle}</p>
 
-              <p className="package-card__desc">{desc}</p>
+                  {/* Data allowance pill if specific MB/GB */}
+                  {dataDisplay && (
+                    <span className="package-card__bonus" style={{ background: '#EAF3FF', color: '#1769FF', borderColor: '#D0E4FF' }}>
+                      <Wifi size={13} aria-hidden="true" />
+                      Xaddiga Xogta: {dataDisplay}
+                    </span>
+                  )}
 
-              {/* Feature list */}
-              <ul className="package-card__features" aria-label="Package features">
-                {features.map(({ Icon: FIcon, label }) => (
-                  <li key={label} className="package-card__feature">
-                    <FIcon size={15} strokeWidth={2} aria-hidden="true" />
-                    <span>{label}</span>
-                  </li>
-                ))}
-              </ul>
+                  {/* Bonus badge */}
+                  {pkg.bonus && (
+                    <span className="package-card__bonus">
+                      <Gift size={13} aria-hidden="true" />
+                      {pkg.bonus}
+                    </span>
+                  )}
 
-              <button
-                className="package-card__btn"
-                onClick={() => smoothScrollTo('contact')}
-                aria-label={`${t('pkg_cta')} — ${title}`}
-              >
-                {t('pkg_cta')}
-              </button>
-            </article>
-          ))}
-        </div>
+                  {/* Price display */}
+                  <div className="package-card__price-wrap">
+                    <div className="package-card__price-inner">
+                      <span className="package-card__price">{pkg.price}</span>
+                      <span className="package-card__currency">{pkg.currency || 'Birr'}</span>
+                    </div>
+                    <span className="package-card__duration">/ {pkg.duration}</span>
+                  </div>
+
+                  <div className="package-card__divider" aria-hidden="true" />
+
+                  <p className="package-card__desc">{pkg.description || pkg.desc}</p>
+
+                  {/* Feature list */}
+                  <ul className="package-card__features" aria-label="Xogta xirmada">
+                    {featuresList.map((feat, idx) => {
+                      const FIcon = getFeatureIcon(idx);
+                      const label = typeof feat === 'string' ? feat : feat.label;
+                      return (
+                        <li key={`${pkg.id}-feat-${idx}`} className="package-card__feature">
+                          <FIcon size={15} strokeWidth={2} aria-hidden="true" />
+                          <span>{label}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <button
+                    className="package-card__btn"
+                    onClick={() => smoothScrollTo('contact')}
+                    aria-label={`${t('pkg_cta')} — ${pkg.name || pkg.title}`}
+                  >
+                    {t('pkg_cta')}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -145,7 +145,7 @@ export default function Hero() {
             <div className="hero__portrait-card">
               <img
                 src={portraitImg}
-                alt="Shaqaale Internetka Bilaaha"
+                alt="Shaqaale Xirmo Internet"
                 className="hero__portrait-img"
                 draggable={false}
               />

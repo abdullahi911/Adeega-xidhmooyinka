@@ -12,7 +12,7 @@ export const translations = {
     nav_cta: 'Ku Xidhmow',
 
     /* ── Hero ── */
-    hero_badge: 'Adeegga Internet',
+    hero_badge: 'Xirmo Internet',
     hero_heading_1: 'Soo dhawoow macmiil!',
     hero_heading_em: 'Waxaan kuu haynaa',
     hero_heading_2: 'dhammaan xidhmooyinka internet-ka.',
@@ -131,8 +131,8 @@ export const translations = {
     footer_svc_monthly: 'Xidhmo Bille ah',
     footer_svc_weekly: 'Xidhmo Isbuucle ah',
     footer_svc_daily: 'Xidhmo Maalinle ah',
-    footer_copyright: '© 2026 Internetka Bilaaha. Dhammaan xuquuqda waa la ilaaliyay.',
-    footer_tagline: 'Adeeg internet oo tayo leh 🌐',
+    footer_copyright: '© 2026 Xirmo Internet. Dhammaan xuquuqda waa la ilaaliyay.',
+    footer_tagline: 'Xirmo Internet oo tayo leh 🌐',
 
     /* ── Lang Button ── */
     lang_btn_label: 'English',
@@ -147,7 +147,7 @@ export const translations = {
     nav_cta: 'Get Connected',
 
     /* ── Hero ── */
-    hero_badge: 'Internet Service',
+    hero_badge: 'Xirmo Internet',
     hero_heading_1: 'Welcome, dear customer!',
     hero_heading_em: 'We have for you',
     hero_heading_2: 'all the internet packages you need.',
@@ -266,8 +266,8 @@ export const translations = {
     footer_svc_monthly: 'Monthly Package',
     footer_svc_weekly: 'Weekly Package',
     footer_svc_daily: 'Daily Package',
-    footer_copyright: '© 2026 Internetka Bilaaha. All rights reserved.',
-    footer_tagline: 'Quality internet service 🌐',
+    footer_copyright: '© 2026 Xirmo Internet. All rights reserved.',
+    footer_tagline: 'Xirmo Internet — Top Quality Service 🌐',
 
     /* ── Lang Button ── */
     lang_btn_label: 'Soomaali',

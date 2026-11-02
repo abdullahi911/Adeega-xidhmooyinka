@@ -47,18 +47,18 @@ export default function Navbar() {
           <button
             className="navbar__brand"
             onClick={() => handleLink('home')}
-            aria-label="Internetka Bilaaha — Home"
+            aria-label="Xirmo Internet — Home"
           >
             <img
               src={logoImg}
-              alt="Internetka Bilaaha logo"
+              alt="Xirmo Internet logo"
               className="navbar__logo"
               width={46}
               height={46}
             />
             <span className="navbar__name">
-              <span className="navbar__name-main">INTERNETKA</span>
-              <span className="navbar__name-sub">BILAAHA</span>
+              <span className="navbar__name-main">XIRMO</span>
+              <span className="navbar__name-sub">INTERNET</span>
             </span>
           </button>
 

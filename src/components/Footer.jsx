@@ -4,6 +4,7 @@ import {
   FaFacebook,
   FaInstagram,
 } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import '../styles/Footer.css';
 import logoImg from '../assets/logo.jpg';
 import { socialLinks, isConfigured } from '../config/socialLinks';
@@ -39,14 +40,14 @@ export default function Footer() {
             <div className="footer__logo-wrap">
               <img
                 src={logoImg}
-                alt="Internetka Bilaaha logo"
+                alt="Xirmo Internet logo"
                 className="footer__logo-img"
                 width={48}
                 height={48}
               />
               <span className="footer__logo-name">
-                <span className="footer__logo-main">INTERNETKA</span>
-                <span className="footer__logo-sub">BILAAHA</span>
+                <span className="footer__logo-main">XIRMO</span>
+                <span className="footer__logo-sub">INTERNET</span>
               </span>
             </div>
 
@@ -99,6 +100,9 @@ export default function Footer() {
                   {label}
                 </button>
               ))}
+              <Link to="/admin" className="footer__link" style={{ opacity: 0.65 }}>
+                Maamulka
+              </Link>
             </nav>
           </div>
 

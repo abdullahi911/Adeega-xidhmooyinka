@@ -29,7 +29,7 @@ import Card, { CardHeader, CardTitle, CardDescription } from '../components/Card
 import Button from '../components/Button';
 import Loading from '../components/Loading';
 import { postService } from '../services/api';
-import { formatNumber, formatDate, truncate } from '../utils/helpers';
+import { formatNumber, truncate } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 // ─── Mock chart data ──────────────────────────────────────────────
