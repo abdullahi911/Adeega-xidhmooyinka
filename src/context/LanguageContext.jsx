@@ -125,6 +125,7 @@ export const translations = {
     contact_not_configured: 'Ma diyaar galin',
 
     /* ── Footer ── */
+    footer_admin: 'Admin Portal',
     footer_desc: 'Adeeg internet oo tayo leh, qiimo jaban, iyo xawaare sare.',
     footer_quick_links: 'Xiriirrada Degdega',
     footer_services: 'Adeegyada',
@@ -133,6 +134,9 @@ export const translations = {
     footer_svc_daily: 'Xidhmo Maalinle ah',
     footer_copyright: '© 2026 Xirmo Internet. Dhammaan xuquuqda waa la ilaaliyay.',
     footer_tagline: 'Xirmo Internet oo tayo leh 🌐',
+    pkg_empty_state: 'Hadda ma jiraan xirmooyin firfircoon oo loogu talagalay bixiyahan.',
+    pkg_loading: 'Xirmooyinka ayaa la soo shubayaa...',
+    pkg_data_allowance: 'Xaddiga Xogta',
 
     /* ── Lang Button ── */
     lang_btn_label: 'English',
@@ -260,6 +264,7 @@ export const translations = {
     contact_not_configured: 'Not configured',
 
     /* ── Footer ── */
+    footer_admin: 'Admin Portal',
     footer_desc: 'Quality internet service, affordable prices, and high speed.',
     footer_quick_links: 'Quick Links',
     footer_services: 'Services',
@@ -268,6 +273,9 @@ export const translations = {
     footer_svc_daily: 'Daily Package',
     footer_copyright: '© 2026 Xirmo Internet. All rights reserved.',
     footer_tagline: 'Xirmo Internet — Top Quality Service 🌐',
+    pkg_empty_state: 'No active packages currently available for this provider.',
+    pkg_loading: 'Loading packages...',
+    pkg_data_allowance: 'Data Allowance',
 
     /* ── Lang Button ── */
     lang_btn_label: 'Soomaali',

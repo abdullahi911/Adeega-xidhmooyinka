@@ -44,7 +44,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     if (criteria.hasUpper && criteria.hasLower) score += 1;
     if (criteria.hasNumber) score += 1;
     if (criteria.hasSpecial) score += 1;
-    return score;
+    return score; // 0 - 4
   }, [newPassword, criteria]);
 
   const strengthDetails = useMemo(() => {
@@ -52,13 +52,13 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
       case 1:
         return { label: 'Very Weak', color: '#EF4444', percent: 25 };
       case 2:
-        return { label: 'Moderate', color: '#F59E0B', percent: 50 };
+        return { label: 'Medium', color: '#F59E0B', percent: 50 };
       case 3:
-        return { label: 'Good', color: '#3B82F6', percent: 75 };
+        return { label: 'Strong', color: '#3B82F6', percent: 75 };
       case 4:
         return { label: 'Very Strong', color: '#10B981', percent: 100 };
       default:
-        return { label: 'Enter a strong password', color: '#CBD5E1', percent: 0 };
+        return { label: 'Enter a password', color: '#CBD5E1', percent: 0 };
     }
   }, [strengthScore]);
 
@@ -80,6 +80,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     setShowConfirm(true);
     setError('');
 
+    // Copy to clipboard
     try {
       navigator.clipboard.writeText(generated);
       setGeneratedCopied(true);
@@ -94,18 +95,13 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     e.preventDefault();
     setError('');
 
-    if (!currentPassword) {
-      setError('Please enter your current password.');
-      return;
-    }
-
     if (!newPassword) {
       setError('Please enter a new password.');
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters long.');
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters long.');
       return;
     }
 
@@ -117,14 +113,15 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       await adminAuthService.changePassword(currentPassword, newPassword);
-      toast.success('Administrator password changed successfully!');
+      toast.success('Password updated successfully & synced with Supabase!');
+      // Reset form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to update administrator password.');
-      toast.error('Password change failed.');
+      setError(err.message || 'Failed to update password.');
+      toast.error(err.message || 'Failed to update password.');
     } finally {
       setLoading(false);
     }
@@ -141,16 +138,16 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             <Key size={24} className="text-blue" />
           </div>
           <div className="admin-modal__header-content">
-            <h3 className="admin-modal__title">Change Admin Password</h3>
+            <h3 className="admin-modal__title">Change Administrator Password</h3>
             <p className="admin-modal__subtitle">
-              Secure your administrator account with a strong password. Stored with SHA-256 encryption & cryptographic salt.
+              Update your administrator password in real time. Secured with Web Crypto SHA-256 and cryptographic salt.
             </p>
           </div>
           <button
             type="button"
             className="admin-modal__close-btn"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label="Close Modal"
           >
             <X size={20} />
           </button>
@@ -165,18 +162,19 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* 1. Current Password */}
+          {/* 1. Current Password (Optional) */}
           <div className="admin-form-group">
-            <label className="admin-form-label">Current Password</label>
+            <label className="admin-form-label">
+              Current Password <span style={{ opacity: 0.65, fontWeight: 'normal', fontSize: '0.85em' }}>(Optional)</span>
+            </label>
             <div className="admin-input-wrap">
               <Lock size={18} className="admin-input-icon" />
               <input
                 type={showCurrent ? 'text' : 'password'}
                 className="admin-input admin-input--with-toggle"
-                placeholder="Enter your current password..."
+                placeholder="Enter current password if known (or leave blank)"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                required
                 disabled={loading}
               />
               <button
@@ -193,15 +191,15 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
 
           {/* Generator Quick Action */}
           <div className="admin-pwd-generator-strip">
-            <span className="admin-pwd-generator-hint">Need a secure, ready-to-use password?</span>
+            <span className="admin-pwd-generator-hint">Want a strong randomized password?</span>
             <button
               type="button"
               className="admin-btn-generator"
               onClick={handleGeneratePassword}
-              title="Generate a 14-character strong password"
+              title="Generate a secure 14-character password"
             >
               <Sparkles size={14} />
-              <span>{generatedCopied ? 'Copied!' : 'Generate Strong Password'}</span>
+              <span>{generatedCopied ? 'Copied to Clipboard!' : 'Generate Strong Password'}</span>
             </button>
           </div>
 
@@ -235,7 +233,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             {newPassword && (
               <div className="admin-pwd-strength-container">
                 <div className="admin-pwd-strength-header">
-                  <span className="admin-pwd-strength-text">Strength:</span>
+                  <span className="admin-pwd-strength-text">Password Strength:</span>
                   <span
                     className="admin-pwd-strength-badge"
                     style={{ color: strengthDetails.color }}
@@ -264,7 +262,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             </div>
             <div className={`admin-pwd-check-item ${criteria.hasUpper && criteria.hasLower ? 'checked' : ''}`}>
               {criteria.hasUpper && criteria.hasLower ? <Check size={14} /> : <div className="dot" />}
-              <span>Uppercase & lowercase</span>
+              <span>Upper & lowercase (Aa-Zz)</span>
             </div>
             <div className={`admin-pwd-check-item ${criteria.hasNumber ? 'checked' : ''}`}>
               {criteria.hasNumber ? <Check size={14} /> : <div className="dot" />}
@@ -286,7 +284,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
                 className={`admin-input admin-input--with-toggle ${
                   confirmPassword && !passwordsMatch ? 'admin-input--error' : ''
                 }`}
-                placeholder="Repeat new password..."
+                placeholder="Re-enter new password..."
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -344,7 +342,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
               {loading ? (
                 <>
                   <span className="admin-spinner" />
-                  <span>Saving...</span>
+                  <span>Updating...</span>
                 </>
               ) : (
                 <>

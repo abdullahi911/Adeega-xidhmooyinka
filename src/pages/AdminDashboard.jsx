@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Database,
   Lock,
+  Mail,
 } from 'lucide-react';
 import { packageService, notificationService, adminAuthService } from '../services/db';
 import ChangePasswordModal from '../components/ChangePasswordModal';
@@ -61,6 +62,10 @@ export default function AdminDashboard() {
   // Password modal state
   const [isPwdModalOpen, setIsPwdModalOpen] = useState(false);
 
+  // Email update state
+  const [adminEmailInput, setAdminEmailInput] = useState(session?.email || '');
+  const [updatingEmail, setUpdatingEmail] = useState(false);
+
   // Form saving state
   const [modalSaving, setModalSaving] = useState(false);
 
@@ -84,7 +89,7 @@ export default function AdminDashboard() {
       const data = await notificationService.getAll();
       setNotifications(data || []);
     } catch (err) {
-      toast.error('Failed to load announcements: ' + err.message);
+      toast.error('Failed to load notifications: ' + err.message);
     } finally {
       setLoadingNotifs(false);
     }
@@ -97,6 +102,10 @@ export default function AdminDashboard() {
     const handleDbChange = () => {
       fetchPackages();
       fetchNotifications();
+      const currentSession = adminAuthService.getSession();
+      if (currentSession?.email) {
+        setAdminEmailInput(currentSession.email);
+      }
     };
 
     window.addEventListener('xirmo:db_change', handleDbChange);
@@ -107,8 +116,28 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     adminAuthService.logout();
-    toast.success('You have successfully signed out.');
+    toast.success('You have been logged out successfully.');
     navigate('/admin/login', { replace: true });
+  };
+
+  // ── Update Admin Email ─────────────────────────────────────────────────────
+
+  const handleUpdateEmail = async (e) => {
+    e.preventDefault();
+    if (!adminEmailInput.trim() || !adminEmailInput.includes('@')) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+
+    setUpdatingEmail(true);
+    try {
+      await adminAuthService.updateEmail(adminEmailInput);
+      toast.success('Administrator email updated successfully!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to update email.');
+    } finally {
+      setUpdatingEmail(false);
+    }
   };
 
   // ── Package Actions ────────────────────────────────────────────────────────
@@ -118,7 +147,7 @@ export default function AdminDashboard() {
       provider: 'safaricom',
       category: 'monthly',
       name: '',
-      badge: 'Monthly Package',
+      badge: 'Monthly Plan',
       subtitle: '',
       data_amount: 'Unlimited',
       data_unit: 'Unlimited',
@@ -127,7 +156,7 @@ export default function AdminDashboard() {
       currency: 'Birr',
       bonus: '',
       description: '',
-      features: 'Unlimited Internet, High Speed, 24/7 Support',
+      features: 'Unlimited High-Speed Internet, Full 4G/5G Speed, 24/7 Dedicated Support',
       is_active: true,
     });
     setIsPkgModalOpen(true);
@@ -136,6 +165,8 @@ export default function AdminDashboard() {
   const handleOpenEditPackage = (pkg) => {
     setEditingPackage({
       ...pkg,
+      name: pkg.name || pkg.title || '',
+      description: pkg.description || pkg.desc || '',
       features: Array.isArray(pkg.features)
         ? pkg.features.map((f) => (typeof f === 'string' ? f : f.label)).join(', ')
         : '',
@@ -154,9 +185,9 @@ export default function AdminDashboard() {
     try {
       const formattedFeatures = editingPackage.features
         ? editingPackage.features
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [];
 
       const payload = {
@@ -178,7 +209,7 @@ export default function AdminDashboard() {
       setEditingPackage(null);
       await fetchPackages();
     } catch (err) {
-      toast.error('Operation failed: ' + err.message);
+      toast.error('An error occurred: ' + err.message);
     } finally {
       setModalSaving(false);
     }
@@ -190,12 +221,12 @@ export default function AdminDashboard() {
       await packageService.toggleAvailability(pkg.id, updatedStatus);
       toast.success(
         updatedStatus
-          ? `Package "${pkg.name}" is now Active and visible on the website.`
-          : `Package "${pkg.name}" is now Hidden from the website.`
+          ? `Package "${pkg.name}" is now Active on live website.`
+          : `Package "${pkg.name}" has been hidden (Inactive).`
       );
       await fetchPackages();
     } catch (err) {
-      toast.error('Status update failed: ' + err.message);
+      toast.error('Error toggling package: ' + err.message);
     }
   };
 
@@ -203,11 +234,11 @@ export default function AdminDashboard() {
     if (!deleteConfirm || deleteConfirm.type !== 'package') return;
     try {
       await packageService.delete(deleteConfirm.id);
-      toast.success(`Package "${deleteConfirm.name}" has been deleted.`);
+      toast.success(`Package "${deleteConfirm.name}" deleted successfully.`);
       setDeleteConfirm(null);
       await fetchPackages();
     } catch (err) {
-      toast.error('Deletion failed: ' + err.message);
+      toast.error('Failed to delete package: ' + err.message);
     }
   };
 
@@ -231,7 +262,7 @@ export default function AdminDashboard() {
   const handleSaveNotification = async (e) => {
     e.preventDefault();
     if (!editingNotif.title.trim() || !editingNotif.description.trim()) {
-      toast.error('Please fill in both Announcement Title and Description.');
+      toast.error('Please enter both Title and Description.');
       return;
     }
 
@@ -242,14 +273,14 @@ export default function AdminDashboard() {
         toast.success('Announcement updated successfully!');
       } else {
         await notificationService.create(editingNotif);
-        toast.success('New announcement published successfully!');
+        toast.success('New announcement created and published!');
       }
 
       setIsNotifModalOpen(false);
       setEditingNotif(null);
       await fetchNotifications();
     } catch (err) {
-      toast.error('Operation failed: ' + err.message);
+      toast.error('An error occurred: ' + err.message);
     } finally {
       setModalSaving(false);
     }
@@ -262,11 +293,11 @@ export default function AdminDashboard() {
       toast.success(
         nextStatus
           ? 'Announcement is now Published and live on the website.'
-          : 'Announcement is now Deactivated (Draft).'
+          : 'Announcement is now set to Draft (hidden).'
       );
       await fetchNotifications();
     } catch (err) {
-      toast.error('Status update failed: ' + err.message);
+      toast.error('Error toggling announcement: ' + err.message);
     }
   };
 
@@ -278,7 +309,7 @@ export default function AdminDashboard() {
       setDeleteConfirm(null);
       await fetchNotifications();
     } catch (err) {
-      toast.error('Deletion failed: ' + err.message);
+      toast.error('Failed to delete announcement: ' + err.message);
     }
   };
 
@@ -319,35 +350,35 @@ export default function AdminDashboard() {
                 <span className="brand-primary">XIRMO</span>{' '}
                 <span className="brand-accent">INTERNET</span>
               </div>
-              <span className="admin-topbar__badge">Administration Dashboard</span>
+              <span className="admin-topbar__badge">Administrator Dashboard</span>
             </div>
           </div>
 
           <div className="admin-topbar__actions">
-            <Link to="/" className="admin-btn admin-btn--outline admin-btn--sm" title="View Public Website">
+            <Link to="/" className="admin-btn admin-btn--outline admin-btn--sm" title="View live public website">
               <ExternalLink size={15} />
-              <span className="admin-btn__text-hide-mobile">View Public Site</span>
+              <span className="admin-btn__text-hide-mobile">View Website</span>
             </Link>
 
-            {/* Password Change Button in Topbar */}
+            {/* Quick Password Change Button in Topbar */}
             <button
               onClick={() => setIsPwdModalOpen(true)}
               className="admin-btn admin-btn--outline admin-btn--sm"
-              title="Change Administrator Password"
+              title="Change administrator password"
             >
               <Key size={14} className="text-blue" />
               <span className="admin-btn__text-hide-mobile">Change Password</span>
             </button>
 
-            <div className="admin-user-pill" title={`Admin: ${session?.email || 'admin@xirmo.so'}`}>
+            <div className="admin-user-pill" title={`Logged in as: ${session?.email || 'Administrator'}`}>
               <Shield size={14} className="text-blue" />
-              <span className="admin-user-pill__email">{session?.email || 'admin@xirmo.so'}</span>
+              <span className="admin-user-pill__email">{session?.email || 'admin@gmail.com'}</span>
             </div>
 
             <button
               onClick={handleLogout}
               className="admin-btn admin-btn--danger-outline admin-btn--sm"
-              title="Sign Out of Admin Portal"
+              title="Sign out of admin session"
             >
               <LogOut size={15} />
               <span className="admin-btn__text-hide-mobile">Sign Out</span>
@@ -362,22 +393,22 @@ export default function AdminDashboard() {
           {/* Welcome Banner */}
           <div className="admin-header-banner">
             <div>
-              <h1 className="admin-header-banner__title">Packages & Announcements Manager</h1>
+              <h1 className="admin-header-banner__title">Package & Notification Management</h1>
               <p className="admin-header-banner__subtitle">
-                Update internet package prices, MB/GB data values, daily, weekly, and monthly packages.
-                All database modifications automatically appear live on the public website.
+                Manage internet package prices, data allowance (MB and GB), durations, and public announcements.
+                All updates appear on the live website immediately without editing source code.
               </p>
             </div>
             <div className="admin-header-banner__quick-actions">
               {activeTab === 'packages' ? (
                 <button onClick={handleOpenAddPackage} className="admin-btn admin-btn--primary">
                   <Plus size={16} />
-                  <span>+ Add New Package</span>
+                  <span>Add New Package</span>
                 </button>
               ) : activeTab === 'notifications' ? (
                 <button onClick={handleOpenAddNotif} className="admin-btn admin-btn--primary">
                   <Plus size={16} />
-                  <span>+ Add Announcement</span>
+                  <span>New Announcement</span>
                 </button>
               ) : (
                 <button onClick={() => setIsPwdModalOpen(true)} className="admin-btn admin-btn--primary">
@@ -416,7 +447,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div className="admin-metric-card__value">{safaricomCount}</div>
-                <div className="admin-metric-card__label">SafariCom Packages</div>
+                <div className="admin-metric-card__label">Safaricom Packages</div>
               </div>
             </div>
 
@@ -436,7 +467,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div className="admin-metric-card__value">{activeNotifsCount}</div>
-                <div className="admin-metric-card__label">Published Announcements</div>
+                <div className="admin-metric-card__label">Live Announcements</div>
               </div>
             </div>
           </div>
@@ -460,7 +491,7 @@ export default function AdminDashboard() {
               aria-selected={activeTab === 'notifications'}
             >
               <Bell size={17} />
-              <span>Site Announcements ({notifications.length})</span>
+              <span>Announcements & Alerts ({notifications.length})</span>
             </button>
 
             <button
@@ -470,7 +501,7 @@ export default function AdminDashboard() {
               aria-selected={activeTab === 'security'}
             >
               <Shield size={17} />
-              <span>Security & Password</span>
+              <span>Security & Account</span>
             </button>
           </div>
 
@@ -486,7 +517,7 @@ export default function AdminDashboard() {
                   <input
                     type="text"
                     className="admin-search-input"
-                    placeholder="Search packages by name, price, or description..."
+                    placeholder="Search package by name, price, or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -506,7 +537,7 @@ export default function AdminDashboard() {
                       onChange={(e) => setProviderFilter(e.target.value)}
                     >
                       <option value="all">All Providers</option>
-                      <option value="safaricom">SafariCom 🟢</option>
+                      <option value="safaricom">Safaricom 🟢</option>
                       <option value="ethiotelecom">EthioTelecom 🔵</option>
                     </select>
                   </div>
@@ -519,13 +550,14 @@ export default function AdminDashboard() {
                       onChange={(e) => setCategoryFilter(e.target.value)}
                     >
                       <option value="all">All Durations</option>
-                      <option value="daily">Daily Packages</option>
-                      <option value="weekly">Weekly Packages</option>
-                      <option value="monthly">Monthly Packages</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="custom">Custom</option>
                     </select>
                   </div>
 
-                  <button onClick={fetchPackages} className="admin-btn admin-btn--outline admin-btn--icon-only" title="Reload packages">
+                  <button onClick={fetchPackages} className="admin-btn admin-btn--outline admin-btn--icon-only" title="Refresh packages list">
                     <RefreshCw size={16} className={loadingPackages ? 'admin-spin' : ''} />
                   </button>
                 </div>
@@ -535,16 +567,18 @@ export default function AdminDashboard() {
               {loadingPackages ? (
                 <div className="admin-empty-state">
                   <div className="admin-spinner admin-spinner--lg" />
-                  <p>Loading internet packages...</p>
+                  <p>Loading packages from database...</p>
                 </div>
               ) : filteredPackages.length === 0 ? (
                 <div className="admin-empty-state">
                   <Package size={48} className="text-gray-400" />
-                  <h3>No packages match your criteria</h3>
-                  <p>Try modifying your search or filters, or add a new package.</p>
+                  <h3>No packages found</h3>
+                  <p>
+                    All example packages have been cancelled. Click the button below to add your real packages to the database.
+                  </p>
                   <button onClick={handleOpenAddPackage} className="admin-btn admin-btn--primary">
                     <Plus size={16} />
-                    <span>+ Add New Package</span>
+                    <span>Add New Package</span>
                   </button>
                 </div>
               ) : (
@@ -560,34 +594,32 @@ export default function AdminDashboard() {
                         <div className="admin-pkg-card__top">
                           <div className="admin-pkg-card__tags">
                             <span
-                              className={`admin-tag admin-tag--provider ${
-                                isSafaricom ? 'admin-tag--safaricom' : 'admin-tag--ethio'
-                              }`}
+                              className={`admin-tag admin-tag--provider ${isSafaricom ? 'admin-tag--safaricom' : 'admin-tag--ethio'
+                                }`}
                             >
-                              {isSafaricom ? '🟢 SafariCom' : '🔵 EthioTelecom'}
+                              {isSafaricom ? '🟢 Safaricom' : '🔵 EthioTelecom'}
                             </span>
                             <span className="admin-tag admin-tag--category">
                               {pkg.category === 'daily'
                                 ? 'Daily'
                                 : pkg.category === 'weekly'
-                                ? 'Weekly'
-                                : pkg.category === 'monthly'
-                                ? 'Monthly'
-                                : pkg.duration}
+                                  ? 'Weekly'
+                                  : pkg.category === 'monthly'
+                                    ? 'Monthly'
+                                    : pkg.duration}
                             </span>
                           </div>
 
                           {/* Live Toggle */}
                           <button
                             type="button"
-                            className={`admin-status-toggle ${
-                              pkg.is_active ? 'admin-status-toggle--active' : 'admin-status-toggle--inactive'
-                            }`}
+                            className={`admin-status-toggle ${pkg.is_active ? 'admin-status-toggle--active' : 'admin-status-toggle--inactive'
+                              }`}
                             onClick={() => handleTogglePackageStatus(pkg)}
-                            title={pkg.is_active ? 'Click to deactivate (hide from site)' : 'Click to activate (make visible)'}
+                            title={pkg.is_active ? 'Click to deactivate (hide from website)' : 'Click to activate (show on website)'}
                           >
                             <span className="admin-status-toggle__dot" />
-                            <span>{pkg.is_active ? 'Active (Live)' : 'Hidden (Inactive)'}</span>
+                            <span>{pkg.is_active ? 'Active (Live)' : 'Inactive (Hidden)'}</span>
                           </button>
                         </div>
 
@@ -626,12 +658,12 @@ export default function AdminDashboard() {
                         )}
 
                         {/* Description */}
-                        <p className="admin-pkg-card__desc">{pkg.description}</p>
+                        {pkg.description && <p className="admin-pkg-card__desc">{pkg.description}</p>}
 
                         {/* Features bullet points */}
                         {Array.isArray(pkg.features) && pkg.features.length > 0 && (
                           <div className="admin-pkg-card__features">
-                            <span className="admin-pkg-card__feat-title">Included Features:</span>
+                            <span className="admin-pkg-card__feat-title">Features:</span>
                             <ul className="admin-pkg-card__feat-list">
                               {pkg.features.map((feat, idx) => (
                                 <li key={idx} className="admin-pkg-card__feat-item">
@@ -681,14 +713,14 @@ export default function AdminDashboard() {
             <div className="admin-tab-pane">
               <div className="admin-section-header">
                 <div>
-                  <h2 className="admin-section-title">Site Announcements & Notifications</h2>
+                  <h2 className="admin-section-title">Website Announcements & Alerts</h2>
                   <p className="admin-section-desc">
-                    Active announcements appear as a top banner on the public website for all visitors.
+                    Active announcements will appear immediately as a top announcement banner across the public website.
                   </p>
                 </div>
                 <button onClick={handleOpenAddNotif} className="admin-btn admin-btn--primary">
                   <Plus size={16} />
-                  <span>+ Add Announcement</span>
+                  <span>Add New Announcement</span>
                 </button>
               </div>
 
@@ -700,11 +732,11 @@ export default function AdminDashboard() {
               ) : notifications.length === 0 ? (
                 <div className="admin-empty-state">
                   <Bell size={48} className="text-gray-400" />
-                  <h3>No announcements created yet</h3>
-                  <p>Click below to create an announcement to display on the public website.</p>
+                  <h3>No announcements found</h3>
+                  <p>There are no announcements yet. Click the button below to publish your first notification.</p>
                   <button onClick={handleOpenAddNotif} className="admin-btn admin-btn--primary">
                     <Plus size={16} />
-                    <span>+ Add Announcement</span>
+                    <span>Add New Announcement</span>
                   </button>
                 </div>
               ) : (
@@ -739,10 +771,10 @@ export default function AdminDashboard() {
                               {isAlert
                                 ? 'Urgent Alert'
                                 : isPromo
-                                ? 'Special Offer'
-                                : isMaint
-                                ? 'Maintenance'
-                                : 'General Announcement'}
+                                  ? 'Promotion'
+                                  : isMaint
+                                    ? 'Maintenance'
+                                    : 'General Announcement'}
                             </span>
 
                             <span className="admin-notif-card__date">
@@ -762,9 +794,8 @@ export default function AdminDashboard() {
                           {/* Publish / Deactivate Toggle */}
                           <button
                             type="button"
-                            className={`admin-btn admin-btn--sm ${
-                              notif.is_active ? 'admin-btn--success' : 'admin-btn--outline'
-                            }`}
+                            className={`admin-btn admin-btn--sm ${notif.is_active ? 'admin-btn--success' : 'admin-btn--outline'
+                              }`}
                             onClick={() => handleToggleNotifStatus(notif)}
                           >
                             {notif.is_active ? (
@@ -783,7 +814,7 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => handleOpenEditNotif(notif)}
                             className="admin-btn admin-btn--outline admin-btn--sm"
-                            title="Edit Announcement"
+                            title="Edit announcement"
                           >
                             <Edit2 size={15} />
                             <span>Edit</span>
@@ -798,7 +829,7 @@ export default function AdminDashboard() {
                               })
                             }
                             className="admin-btn admin-btn--danger-outline admin-btn--sm"
-                            title="Delete Announcement"
+                            title="Delete announcement"
                           >
                             <Trash2 size={15} />
                           </button>
@@ -812,21 +843,21 @@ export default function AdminDashboard() {
           )}
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 3: SECURITY & ADMIN PASSWORD
+              TAB 3: SECURITY & ADMIN PASSWORD & GMAIL
               ══════════════════════════════════════════════════════════════════ */}
           {activeTab === 'security' && (
             <div className="admin-tab-pane">
               <div className="admin-security-grid">
-                {/* Change Password Card */}
+                {/* Administrator Password Card */}
                 <div className="admin-card">
                   <div className="admin-card__header">
                     <div className="admin-card__icon-badge">
                       <Key size={22} className="text-blue" />
                     </div>
                     <div>
-                      <h3 className="admin-card__title">Administrator Password & Security</h3>
+                      <h3 className="admin-card__title">Administrator Password</h3>
                       <p className="admin-card__subtitle">
-                        Protect your administrator account with a strong, encrypted password.
+                        Change your password on time with immediate effect. Real-time encryption with SHA-256 and cryptographic salt.
                       </p>
                     </div>
                   </div>
@@ -836,10 +867,10 @@ export default function AdminDashboard() {
                       <Lock size={26} className="text-blue" />
                     </div>
                     <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#071B3A', margin: '0 0 0.4rem' }}>
-                      Change Your Admin Password
+                      Update Administrator Password
                     </h4>
                     <p style={{ fontSize: '0.86rem', color: '#52627A', margin: '0 0 1.25rem', lineHeight: 1.5 }}>
-                      Open the interactive password manager with a live strength meter, requirement checklist, and automatic secure password generator.
+                      Click the button below to open the dedicated password modal featuring live strength meter, requirement checklist, and strong password generator.
                     </p>
                     <button
                       type="button"
@@ -848,7 +879,7 @@ export default function AdminDashboard() {
                       style={{ padding: '0.85rem' }}
                     >
                       <Key size={18} />
-                      <span>Open Password Manager</span>
+                      <span>Open Password Change Modal</span>
                     </button>
                   </div>
 
@@ -863,35 +894,62 @@ export default function AdminDashboard() {
                     </div>
                     <div className="admin-pwd-check-item checked">
                       <Check size={14} />
-                      <span>Supabase Auth Cloud Sync</span>
+                      <span>Real-time Password Updates</span>
                     </div>
                     <div className="admin-pwd-check-item checked">
                       <Check size={14} />
-                      <span>Zero Plain-text Storage</span>
+                      <span>Zero Plain-Text Storage</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Account & System Status Card */}
+                {/* Administrator Profile / Gmail Configuration Card */}
                 <div className="admin-card">
                   <div className="admin-card__header">
                     <div className="admin-card__icon-badge">
-                      <Shield size={20} className="text-green" />
+                      <Mail size={22} className="text-blue" />
                     </div>
                     <div>
-                      <h3 className="admin-card__title">System & Database Status</h3>
-                      <p className="admin-card__subtitle">Overview of authentication and storage configuration.</p>
+                      <h3 className="admin-card__title">Administrator Account & Email</h3>
+                      <p className="admin-card__subtitle">
+                        Enter and update your personal email / Gmail address for administrator access.
+                      </p>
                     </div>
                   </div>
 
+                  <form onSubmit={handleUpdateEmail} style={{ marginBottom: '1.5rem' }}>
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Administrator Email / Gmail</label>
+                      <div className="admin-input-wrap">
+                        <Mail size={18} className="admin-input-icon" />
+                        <input
+                          type="email"
+                          className="admin-input"
+                          placeholder="your-email@gmail.com"
+                          value={adminEmailInput}
+                          onChange={(e) => setAdminEmailInput(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      className="admin-btn admin-btn--outline"
+                      style={{ marginTop: '0.85rem' }}
+                      disabled={updatingEmail}
+                    >
+                      {updatingEmail ? 'Updating...' : 'Save Administrator Email'}
+                    </button>
+                  </form>
+
                   <div className="admin-info-list">
                     <div className="admin-info-item">
-                      <span className="admin-info-item__key">Current Administrator:</span>
-                      <strong className="admin-info-item__value">{session?.email || 'admin@xirmo.so'}</strong>
+                      <span className="admin-info-item__key">Active Admin Email:</span>
+                      <strong className="admin-info-item__value">{session?.email || 'admin@gmail.com'}</strong>
                     </div>
 
                     <div className="admin-info-item">
-                      <span className="admin-info-item__key">Access Level:</span>
+                      <span className="admin-info-item__key">Access Role:</span>
                       <span className="admin-tag admin-tag--role">Super Administrator</span>
                     </div>
 
@@ -903,16 +961,9 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="admin-info-item">
-                      <span className="admin-info-item__key">Database Mode:</span>
+                      <span className="admin-info-item__key">Database Connection:</span>
                       <span className="admin-tag admin-tag--green">
                         <CheckCircle2 size={13} /> Supabase Cloud + Local Backup
-                      </span>
-                    </div>
-
-                    <div className="admin-info-item">
-                      <span className="admin-info-item__key">Password Hashing:</span>
-                      <span className="admin-tag admin-tag--purple">
-                        WebCrypto SHA-256 + Salt
                       </span>
                     </div>
                   </div>
@@ -920,7 +971,7 @@ export default function AdminDashboard() {
                   <div className="admin-alert-box">
                     <AlertCircle size={16} className="text-blue" />
                     <p>
-                      Public registration is disabled. System administration and package modifications are strictly restricted to authorized administrator sessions.
+                      Public registration is disabled. You can log in using your customized email/Gmail and password at any time.
                     </p>
                   </div>
                 </div>
@@ -942,13 +993,13 @@ export default function AdminDashboard() {
                   {editingPackage.id ? 'Edit Internet Package' : 'Add New Internet Package'}
                 </h3>
                 <p className="admin-modal__subtitle">
-                  Changes saved here will automatically appear on the public website.
+                  Changes saved here will appear immediately on the live public website.
                 </p>
               </div>
               <button
                 className="admin-modal__close-btn"
                 onClick={() => setIsPkgModalOpen(false)}
-                aria-label="Close modal"
+                aria-label="Close Modal"
               >
                 <X size={20} />
               </button>
@@ -958,42 +1009,42 @@ export default function AdminDashboard() {
               <div className="admin-form-grid">
                 {/* Provider */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Service Provider</label>
+                  <label className="admin-form-label">Provider (Network)</label>
                   <select
                     className="admin-select"
                     value={editingPackage.provider}
                     onChange={(e) => setEditingPackage({ ...editingPackage, provider: e.target.value })}
                     required
                   >
-                    <option value="safaricom">SafariCom 🟢</option>
+                    <option value="safaricom">Safaricom 🟢</option>
                     <option value="ethiotelecom">Ethiopia Telecom (EthioTelecom) 🔵</option>
-                    <option value="other">Other Provider</option>
+                    <option value="other">Other Network</option>
                   </select>
                 </div>
 
                 {/* Category */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Package Category</label>
+                  <label className="admin-form-label">Duration Category</label>
                   <select
                     className="admin-select"
                     value={editingPackage.category}
                     onChange={(e) => setEditingPackage({ ...editingPackage, category: e.target.value })}
                     required
                   >
-                    <option value="daily">Daily Package</option>
-                    <option value="weekly">Weekly Package</option>
-                    <option value="monthly">Monthly Package</option>
-                    <option value="custom">Custom Package</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom Plan</option>
                   </select>
                 </div>
 
                 {/* Package Name */}
                 <div className="admin-form-group admin-form-group--full">
-                  <label className="admin-form-label">Package Name / Title</label>
+                  <label className="admin-form-label">Package Name</label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., UNLIMITED MONTHLY or 20GB ULTRA"
+                    placeholder="e.g. UNLIMITED MONTHLY or 25GB FAST BUNDLE"
                     value={editingPackage.name}
                     onChange={(e) => setEditingPackage({ ...editingPackage, name: e.target.value })}
                     required
@@ -1002,11 +1053,11 @@ export default function AdminDashboard() {
 
                 {/* Badge */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Card Badge</label>
+                  <label className="admin-form-label">Badge Tag (e.g. Monthly Plan, Best Value)</label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., Monthly Package, Best Value, Popular"
+                    placeholder="e.g. Monthly Plan, Popular"
                     value={editingPackage.badge || ''}
                     onChange={(e) => setEditingPackage({ ...editingPackage, badge: e.target.value })}
                   />
@@ -1014,11 +1065,11 @@ export default function AdminDashboard() {
 
                 {/* Subtitle */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Subtitle</label>
+                  <label className="admin-form-label">Subtitle (Short Tagline)</label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., High-speed monthly connection"
+                    placeholder="e.g. High-speed unlimited monthly internet"
                     value={editingPackage.subtitle || ''}
                     onChange={(e) => setEditingPackage({ ...editingPackage, subtitle: e.target.value })}
                   />
@@ -1030,7 +1081,7 @@ export default function AdminDashboard() {
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., 2,750 or 850"
+                    placeholder="e.g. 2,750 or 850"
                     value={editingPackage.price}
                     onChange={(e) => setEditingPackage({ ...editingPackage, price: e.target.value })}
                     required
@@ -1053,11 +1104,11 @@ export default function AdminDashboard() {
 
                 {/* Duration */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Duration</label>
+                  <label className="admin-form-label">Duration Display</label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., 1 Month, 1 Week, 1 Day"
+                    placeholder="e.g. 1 Month, 1 Week, 1 Day"
                     value={editingPackage.duration}
                     onChange={(e) => setEditingPackage({ ...editingPackage, duration: e.target.value })}
                     required
@@ -1071,7 +1122,7 @@ export default function AdminDashboard() {
                     <input
                       type="text"
                       className="admin-input"
-                      placeholder="e.g., 10, 50, 500, or Unlimited"
+                      placeholder="e.g. 10, 50, 500, or Unlimited"
                       value={editingPackage.data_amount}
                       onChange={(e) => setEditingPackage({ ...editingPackage, data_amount: e.target.value })}
                       required
@@ -1091,11 +1142,11 @@ export default function AdminDashboard() {
 
                 {/* Bonus */}
                 <div className="admin-form-group admin-form-group--full">
-                  <label className="admin-form-label">Bonus Offer (Optional)</label>
+                  <label className="admin-form-label">Bonus Allowance (Optional)</label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., Bonus: 300 Birr"
+                    placeholder="e.g. Bonus: 300 Birr airtime"
                     value={editingPackage.bonus || ''}
                     onChange={(e) => setEditingPackage({ ...editingPackage, bonus: e.target.value })}
                   />
@@ -1103,11 +1154,11 @@ export default function AdminDashboard() {
 
                 {/* Description */}
                 <div className="admin-form-group admin-form-group--full">
-                  <label className="admin-form-label">Description</label>
+                  <label className="admin-form-label">Package Description</label>
                   <textarea
                     rows={3}
                     className="admin-textarea"
-                    placeholder="Write a clear description of the package..."
+                    placeholder="Write package details and benefits..."
                     value={editingPackage.description || ''}
                     onChange={(e) => setEditingPackage({ ...editingPackage, description: e.target.value })}
                   />
@@ -1116,17 +1167,17 @@ export default function AdminDashboard() {
                 {/* Features */}
                 <div className="admin-form-group admin-form-group--full">
                   <label className="admin-form-label">
-                    Features (comma-separated list)
+                    Features (comma separated list)
                   </label>
                   <input
                     type="text"
                     className="admin-input"
-                    placeholder="e.g., Unlimited Data, 4G/5G Speeds, 24/7 Priority Support"
+                    placeholder="e.g. Unlimited Internet, 4G/5G Full Speed, 24/7 Support"
                     value={editingPackage.features}
                     onChange={(e) => setEditingPackage({ ...editingPackage, features: e.target.value })}
                   />
                   <small className="admin-form-hint">
-                    Separate each feature with a comma (e.g., Fast Download, No Throttling).
+                    Separate each feature with a comma (e.g. Fast 4G Speed, Free SIM, 24/7 Support).
                   </small>
                 </div>
 
@@ -1138,7 +1189,7 @@ export default function AdminDashboard() {
                       checked={editingPackage.is_active}
                       onChange={(e) => setEditingPackage({ ...editingPackage, is_active: e.target.checked })}
                     />
-                    <span>Make this package active (Visible on the public website)</span>
+                    <span>Make this package active and visible on the live website</span>
                   </label>
                 </div>
               </div>
@@ -1188,13 +1239,13 @@ export default function AdminDashboard() {
                   {editingNotif.id ? 'Edit Announcement' : 'Create New Announcement'}
                 </h3>
                 <p className="admin-modal__subtitle">
-                  Published announcements appear on the top banner of the public website.
+                  Published announcements appear immediately on the top announcement banner of the website.
                 </p>
               </div>
               <button
                 className="admin-modal__close-btn"
                 onClick={() => setIsNotifModalOpen(false)}
-                aria-label="Close modal"
+                aria-label="Close Modal"
               >
                 <X size={20} />
               </button>
@@ -1220,7 +1271,7 @@ export default function AdminDashboard() {
                 <input
                   type="text"
                   className="admin-input"
-                  placeholder="e.g., Special promotion on all monthly packages!"
+                  placeholder="e.g. Special Discount on Monthly Packages!"
                   value={editingNotif.title}
                   onChange={(e) => setEditingNotif({ ...editingNotif, title: e.target.value })}
                   required
@@ -1228,11 +1279,11 @@ export default function AdminDashboard() {
               </div>
 
               <div className="admin-form-group">
-                <label className="admin-form-label">Description</label>
+                <label className="admin-form-label">Announcement Description</label>
                 <textarea
                   rows={4}
                   className="admin-textarea"
-                  placeholder="Enter the announcement message to display on the banner..."
+                  placeholder="Enter announcement description..."
                   value={editingNotif.description}
                   onChange={(e) => setEditingNotif({ ...editingNotif, description: e.target.value })}
                   required
@@ -1246,7 +1297,7 @@ export default function AdminDashboard() {
                     checked={editingNotif.is_active}
                     onChange={(e) => setEditingNotif({ ...editingNotif, is_active: e.target.checked })}
                   />
-                  <span>Publish this announcement immediately (Visible to website visitors)</span>
+                  <span>Publish immediately to live public website</span>
                 </label>
               </div>
 
@@ -1273,7 +1324,7 @@ export default function AdminDashboard() {
                   ) : (
                     <>
                       <Check size={16} />
-                      <span>{editingNotif.id ? 'Save Changes' : 'Publish Announcement'}</span>
+                      <span>{editingNotif.id ? 'Save Announcement' : 'Publish Announcement'}</span>
                     </>
                   )}
                 </button>
@@ -1324,7 +1375,7 @@ export default function AdminDashboard() {
       )}
 
       {/* ════════════════════════════════════════════════════════════════════
-          MODAL: PASSWORD CHANGE MODAL
+          MODAL: BEAUTIFUL REAL-TIME PASSWORD CHANGE MODAL
           ════════════════════════════════════════════════════════════════════ */}
       <ChangePasswordModal
         isOpen={isPwdModalOpen}

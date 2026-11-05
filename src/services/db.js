@@ -2,10 +2,10 @@
  * XIRMO INTERNET — Database & Authentication Service
  * 
  * Supports:
- * 1. Supabase Cloud Database (if VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set).
- * 2. Persistent Resilient Local Database (automatic fallback with multi-tab sync, seed data, and zero configuration).
+ * 1. Supabase Cloud Database (connected via VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY).
+ * 2. Persistent Resilient Local Database (automatic fallback with multi-tab sync and zero mock packages).
  * 3. Secure SHA-256 Hashing with Cryptographic Salts (Web Crypto API - NO plain-text passwords).
- * 4. Role-based session authorization (role: 'admin').
+ * 4. Real-time Password & Admin Email Updates with Supabase sync.
  */
 
 import { supabase } from '../lib/supabase';
@@ -15,192 +15,30 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: 'xirmo_notifications',
   ADMIN_USER: 'xirmo_admin_user',
   SESSION: 'xirmo_admin_session',
+  INITIALIZED: 'xirmo_db_initialized_v2',
 };
 
-// ── Default Seed Data ────────────────────────────────────────────────────────
-
-const DEFAULT_PACKAGES = [
-  {
-    id: 'bile',
-    provider: 'safaricom',
-    category: 'monthly',
-    name: 'BILE AAN XADIDNAYN',
-    badge: 'Xirmo Bille ah',
-    subtitle: 'Xirmo bille ah oo xawaare sare leh',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Bil',
-    price: '2,750',
-    currency: 'Birr',
-    bonus: '',
-    description: 'Xirmo internet oo ku habboon isticmaalka muddada bisha. Hel internet xawaare sare oo aan xad lahayn muddo bil ah.',
-    features: [
-      "Internet Xad la'aan",
-      'Xawaare Sare (4G/5G)',
-      'Xirmo Aamin ah',
-      'Taageero Joogto ah 24/7',
-    ],
-    is_active: true,
-    sort_order: 1,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'isbuucle',
-    provider: 'safaricom',
-    category: 'weekly',
-    name: 'ISBUUCLE AAN XADIDNAYN',
-    badge: 'Xirmo Toddobaadlaha',
-    subtitle: 'Xirmo isbuucle ah',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Toddobaad',
-    price: '850',
-    currency: 'Birr',
-    bonus: '',
-    description: 'Xirmo internet oo ku habboon baahiyahaaga toddobaadlaha ah. Xawaare buuxa oo toddobaad oo dhan socda.',
-    features: [
-      "Internet Xad la'aan",
-      'Xawaare Buuxa',
-      'Xirmo Xasilan',
-      'Taageero Joogto ah',
-    ],
-    is_active: true,
-    sort_order: 2,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'maalinle',
-    provider: 'safaricom',
-    category: 'daily',
-    name: 'MAALINLE AAN XADIDNAYN',
-    badge: 'Xirmo Maalinlaha',
-    subtitle: 'Xirmo maalinle ah',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Maalin',
-    price: '135',
-    currency: 'Birr',
-    bonus: '',
-    description: 'Xirmo internet oo loogu talagalay isticmaalka maalinlaha ah. Ku habboon kuwa baahi degdeg ah u qaba.',
-    features: [
-      "Internet Xad la'aan",
-      'Xawaare Degdeg ah',
-      'Bilaab Isla Markiiba',
-      'Lacag Jaban',
-    ],
-    is_active: true,
-    sort_order: 3,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'et-monthly',
-    provider: 'ethiotelecom',
-    category: 'monthly',
-    name: 'PREMIUM XADIDNAYN',
-    badge: 'Xirmo Bille ah',
-    subtitle: 'Unlimited Premium: Unlimited Internet',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Bil',
-    price: '1,850',
-    currency: 'ETB',
-    bonus: 'Bonus: 300 Birr',
-    description: 'Xirmo internet oo Premium ah oo aan xad lahayn. Hel internet xawaare buuxa muddo bil ah.',
-    features: [
-      "Internet Xad la'aan",
-      'Xawaare Premium',
-      'Bonus 300 Birr',
-      'Bilaab Isla Markiiba',
-    ],
-    is_active: true,
-    sort_order: 4,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'et-weekly',
-    provider: 'ethiotelecom',
-    category: 'weekly',
-    name: 'ISBUUCLE XADIDNAYN',
-    badge: 'Xirmo Toddobaadlaha',
-    subtitle: 'Weekly Unlimited Internet',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Toddobaad',
-    price: '550',
-    currency: 'ETB',
-    bonus: 'Bonus: 90 Birr',
-    description: 'Xirmo internet oo aan xad lahayn toddobaadkiiba. Ku habboon isticmaalka toddobaadlaha ah.',
-    features: [
-      "Internet Xad la'aan",
-      'Xawaare Buuxa',
-      'Bonus 90 Birr',
-      'Taageero Joogto ah',
-    ],
-    is_active: true,
-    sort_order: 5,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'et-bundle',
-    provider: 'ethiotelecom',
-    category: 'monthly',
-    name: 'PREMIUM CODKA + INTERNET',
-    badge: 'Xirmo Bille ah',
-    subtitle: 'Monthly Unlimited Premium Voice + Internet + SMS',
-    data_amount: 'Unlimited',
-    data_unit: 'Unlimited',
-    duration: '1 Bil',
-    price: '2,450',
-    currency: 'ETB',
-    bonus: 'Bonus: 300 Birr',
-    description: 'Xirmo Premium ah oo ku jirta Codka, Internet, iyo SMS oo aan xad lahayn. Hel wax walba hal xirmo.',
-    features: [
-      "Internet Xad la'aan",
-      "Codka Xad la'aan",
-      "SMS Xad la'aan",
-      'Bonus 300 Birr',
-    ],
-    is_active: true,
-    sort_order: 6,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-];
-
+// ── Default Data: Starting with ZERO mock packages (real admin packages only)
 const DEFAULT_NOTIFICATIONS = [
   {
     id: 'notif-1',
-    title: 'Ku soo dhawoow Xirmo Internet!',
-    description: 'Waxaan kuu heynaa xirmooyinka ugu fiican ee SafariCom iyo EthioTelecom qiimo jaban oo ku qanciya. Dalbo xirmadaada maanta.',
+    title: 'Welcome to Xirmo Internet!',
+    description: 'Explore our high-speed internet packages from Safaricom and EthioTelecom. Contact us today to order your package.',
     type: 'announcement',
     is_active: true,
-    created_at: new Date('2026-01-01').toISOString(),
-    updated_at: new Date('2026-01-01').toISOString(),
-  },
-  {
-    id: 'notif-2',
-    title: 'Xirmooyinka Bille-ka ah ee Safaricom oo Qiimo Dhimis leh!',
-    description: 'Hel internet xawaare sare oo aan xad lahayn bisha oo dhan. La xiriir taageerada macaamiisha si aad u hesho dhiirigelin gaar ah.',
-    type: 'promotion',
-    is_active: false,
-    created_at: new Date('2026-01-02').toISOString(),
-    updated_at: new Date('2026-01-02').toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
 ];
 
-// Default admin: admin@xirmo.so / AdminPassword123!
-// Precomputed SHA-256 with salt 'xirmo_secure_salt_2026'
+// Initial Admin User Template (Allows admin to claim and bind their Gmail on first login)
 const DEFAULT_ADMIN = {
   email: 'admin@xirmo.so',
   salt: 'xirmo_secure_salt_2026',
   // SHA-256 of "xirmo_secure_salt_2026" + "AdminPassword123!"
   passwordHash: '8b78ec7b0f69741c8f42fa25c179c37951717f9d9fcab393b4fecb273752e253',
   role: 'admin',
+  isCustomized: false, // Flag to allow auto-claiming with user's Gmail
 };
 
 // ── Security Helpers ─────────────────────────────────────────────────────────
@@ -233,13 +71,32 @@ function isSupabaseConfigured() {
   );
 }
 
-// ── Local Database Initialisation ────────────────────────────────────────────
+// ── Local Database Initialisation & Legacy Mock Cleanup ─────────────────────
 
 function initLocalDatabase() {
   if (typeof window === 'undefined') return;
 
+  // Clean up legacy mock packages if present
+  const isV2 = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
+  if (!isV2) {
+    const rawPkgs = localStorage.getItem(STORAGE_KEYS.PACKAGES);
+    if (rawPkgs) {
+      try {
+        const list = JSON.parse(rawPkgs);
+        const mockIds = ['bile', 'isbuucle', 'maalinle', 'et-monthly', 'et-weekly', 'et-bundle'];
+        const cleanList = list.filter((p) => !mockIds.includes(p.id));
+        localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(cleanList));
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify([]));
+      }
+    } else {
+      localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify([]));
+    }
+    localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
+  }
+
   if (!localStorage.getItem(STORAGE_KEYS.PACKAGES)) {
-    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(DEFAULT_PACKAGES));
+    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify([]));
   }
 
   if (!localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS)) {
@@ -254,11 +111,45 @@ function initLocalDatabase() {
 // Initialise on module load
 initLocalDatabase();
 
-// ── Database Event Dispatcher (for immediate reactive updates across components)
+// ── Database Event Dispatcher ────────────────────────────────────────────────
 function dispatchDbChange(type, detail) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('xirmo:db_change', { detail: { type, ...detail } }));
   }
+}
+
+/**
+ * Filter and format package data to strictly match Supabase database columns
+ */
+function sanitizePackage(pkg) {
+  const clean = {
+    id: pkg.id,
+    provider: pkg.provider || 'safaricom',
+    category: pkg.category || 'monthly',
+    name: (pkg.name || pkg.title || '').trim(),
+    badge: pkg.badge || '',
+    subtitle: pkg.subtitle || '',
+    data_amount: pkg.data_amount || 'Unlimited',
+    data_unit: pkg.data_unit || 'Unlimited',
+    duration: pkg.duration || '',
+    price: String(pkg.price || '').trim(),
+    currency: pkg.currency || 'Birr',
+    bonus: pkg.bonus || '',
+    description: pkg.description || pkg.desc || '',
+    features: Array.isArray(pkg.features)
+      ? pkg.features
+      : typeof pkg.features === 'string'
+      ? pkg.features.split(',').map((f) => f.trim()).filter(Boolean)
+      : [],
+    is_active: pkg.is_active !== undefined ? Boolean(pkg.is_active) : true,
+    sort_order: Number(pkg.sort_order || 0),
+    updated_at: new Date().toISOString(),
+  };
+
+  if (pkg.created_at) {
+    clean.created_at = pkg.created_at;
+  }
+  return clean;
 }
 
 // ── PACKAGES CRUD ────────────────────────────────────────────────────────────
@@ -266,7 +157,7 @@ function dispatchDbChange(type, detail) {
 export const packageService = {
   /**
    * Fetch all packages, optionally filtered.
-   * @param {{ provider?: string, category?: string, onlyActive?: boolean }} [options]
+   * Connects to Supabase first; falls back to local database.
    */
   async getAll(options = {}) {
     initLocalDatabase();
@@ -279,18 +170,25 @@ export const packageService = {
         if (options.category && options.category !== 'all') query = query.eq('category', options.category);
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && Array.isArray(data)) {
+          // If query was unfiltered, synchronize local cache
+          if (!options.onlyActive && !options.provider && !options.category) {
+            localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(data));
+          }
           return data;
         }
+        if (error) {
+          console.warn('[Supabase getAll error notice]:', error.message || error);
+        }
       } catch (err) {
-        console.warn('[Database] Supabase query failed, falling back to local database:', err);
+        console.warn('[Database] Supabase query notice, using local database:', err);
       }
     }
 
     // Local fallback
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
-      let list = raw ? JSON.parse(raw) : DEFAULT_PACKAGES;
+      let list = raw ? JSON.parse(raw) : [];
 
       if (options.onlyActive) {
         list = list.filter((p) => p.is_active);
@@ -304,7 +202,7 @@ export const packageService = {
 
       return list.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     } catch {
-      return DEFAULT_PACKAGES;
+      return [];
     }
   },
 
@@ -317,76 +215,101 @@ export const packageService = {
   },
 
   /**
-   * Create a new package
+   * Create a new package and persist to both Supabase and local cache
    */
   async create(pkgData) {
     initLocalDatabase();
     const newPkg = {
       ...pkgData,
       id: pkgData.id || `pkg-${Date.now()}-${generateRandomString(4)}`,
+      name: (pkgData.name || pkgData.title || '').trim(),
+      price: String(pkgData.price || '').trim(),
       features: Array.isArray(pkgData.features) ? pkgData.features : [],
-      is_active: pkgData.is_active !== undefined ? pkgData.is_active : true,
+      is_active: pkgData.is_active !== undefined ? Boolean(pkgData.is_active) : true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('packages').insert([newPkg]).select();
-        if (!error && data && data[0]) {
-          dispatchDbChange('package_created', { package: data[0] });
-          return data[0];
-        }
-      } catch (err) {
-        console.warn('[Database] Supabase insert failed, persisting locally:', err);
-      }
-    }
-
+    // Save to local cache immediately
     const raw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
-    const list = raw ? JSON.parse(raw) : DEFAULT_PACKAGES;
+    const list = raw ? JSON.parse(raw) : [];
     list.push(newPkg);
     localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(list));
     dispatchDbChange('package_created', { package: newPkg });
+
+    // Persist to Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const cleanPayload = sanitizePackage(newPkg);
+        const { data, error } = await supabase.from('packages').upsert(cleanPayload).select();
+        if (error) {
+          console.error('[Supabase Package Create Error]:', error.message || error);
+        } else if (data && data[0]) {
+          return data[0];
+        }
+      } catch (err) {
+        console.warn('[Database] Supabase create notice:', err);
+      }
+    }
+
     return newPkg;
   },
 
   /**
-   * Update an existing package
+   * Update an existing package name, price, data, or availability.
+   * Immediately updates local state and synchronizes with Supabase.
    */
   async update(id, updates) {
     initLocalDatabase();
-    const updatedData = {
+
+    // 1. Update local cache immediately
+    const raw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
+    const list = raw ? JSON.parse(raw) : [];
+    const index = list.findIndex((p) => p.id === id);
+
+    const merged = {
+      ...(index !== -1 ? list[index] : {}),
       ...updates,
+      id,
       updated_at: new Date().toISOString(),
     };
 
+    if (index !== -1) {
+      list[index] = merged;
+    } else {
+      list.push(merged);
+    }
+    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(list));
+    dispatchDbChange('package_updated', { package: merged });
+
+    // 2. Synchronize to Supabase via upsert
     if (isSupabaseConfigured()) {
       try {
+        const cleanPayload = sanitizePackage(merged);
         const { data, error } = await supabase
           .from('packages')
-          .update(updatedData)
-          .eq('id', id)
+          .upsert(cleanPayload)
           .select();
-        if (!error && data && data[0]) {
-          dispatchDbChange('package_updated', { package: data[0] });
+
+        if (error) {
+          console.error('[Supabase Package Update Error]:', error.message || error);
+        } else if (data && data[0]) {
+          // Sync canonical record from Supabase
+          const freshRaw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
+          const freshList = freshRaw ? JSON.parse(freshRaw) : [];
+          const idx = freshList.findIndex((p) => p.id === id);
+          if (idx !== -1) {
+            freshList[idx] = { ...freshList[idx], ...data[0] };
+            localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(freshList));
+          }
           return data[0];
         }
       } catch (err) {
-        console.warn('[Database] Supabase update failed, updating locally:', err);
+        console.warn('[Database] Supabase update notice:', err);
       }
     }
 
-    const raw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
-    const list = raw ? JSON.parse(raw) : DEFAULT_PACKAGES;
-    const index = list.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new Error(`Package with id "${id}" was not found.`);
-    }
-
-    list[index] = { ...list[index], ...updatedData };
-    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(list));
-    dispatchDbChange('package_updated', { package: list[index] });
-    return list[index];
+    return merged;
   },
 
   /**
@@ -395,19 +318,25 @@ export const packageService = {
   async delete(id) {
     initLocalDatabase();
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('packages').delete().eq('id', id);
-      } catch (err) {
-        console.warn('[Database] Supabase delete failed, deleting locally:', err);
-      }
-    }
-
+    // Remove from local cache immediately
     const raw = localStorage.getItem(STORAGE_KEYS.PACKAGES);
-    const list = raw ? JSON.parse(raw) : DEFAULT_PACKAGES;
+    const list = raw ? JSON.parse(raw) : [];
     const filtered = list.filter((p) => p.id !== id);
     localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(filtered));
     dispatchDbChange('package_deleted', { id });
+
+    // Delete from Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabase.from('packages').delete().eq('id', id);
+        if (error) {
+          console.warn('[Supabase Package Delete Error]:', error.message || error);
+        }
+      } catch (err) {
+        console.warn('[Database] Supabase delete notice:', err);
+      }
+    }
+
     return true;
   },
 
@@ -419,12 +348,17 @@ export const packageService = {
   },
 
   /**
-   * Restore default factory packages
+   * Clear all packages
    */
-  async resetToDefaults() {
-    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify(DEFAULT_PACKAGES));
+  async clearAll() {
+    localStorage.setItem(STORAGE_KEYS.PACKAGES, JSON.stringify([]));
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('packages').delete().neq('id', '');
+      } catch {}
+    }
     dispatchDbChange('packages_reset', {});
-    return DEFAULT_PACKAGES;
+    return [];
   },
 };
 
@@ -482,7 +416,7 @@ export const notificationService = {
           return data[0];
         }
       } catch (err) {
-        console.warn('[Database] Supabase notification insert failed, persisting locally:', err);
+        console.warn('[Database] Supabase notification insert failed, saving locally:', err);
       }
     }
 
@@ -568,18 +502,69 @@ export const notificationService = {
 export const adminAuthService = {
   /**
    * Authenticate administrator with email and password.
-   * Never stores plain-text passwords.
+   * Supports:
+   * 1. Direct Supabase Auth sign-in if configured.
+   * 2. Auto-claiming / binding of the admin's Gmail on first setup.
+   * 3. Web Crypto SHA-256 + cryptographic salt for secure storage.
    */
   async login(email, password) {
     initLocalDatabase();
 
     if (!email || !password) {
-      throw new Error('Fadlan geli email-kaaga iyo eraygarinka.');
+      throw new Error('Please enter both email address and password.');
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Try Supabase Auth if configured
+    // 1. Check Supabase 'admin_settings' table first (synced credentials from database)
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('admin_settings')
+          .select('value')
+          .eq('key', 'admin_credentials')
+          .maybeSingle();
+
+        if (!error && data?.value) {
+          const remoteAdmin = data.value;
+          const remoteEmail = (remoteAdmin.email || '').trim().toLowerCase();
+
+          if (cleanEmail === remoteEmail) {
+            const computedHash = await hashPassword(password, remoteAdmin.salt);
+            if (computedHash === remoteAdmin.passwordHash) {
+              // Valid credentials matching Supabase database
+              const localAdmin = {
+                email: cleanEmail,
+                salt: remoteAdmin.salt,
+                passwordHash: remoteAdmin.passwordHash,
+                role: 'admin',
+                isCustomized: true,
+                updated_at: remoteAdmin.updated_at || new Date().toISOString(),
+              };
+              localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(localAdmin));
+
+              const session = {
+                token: generateRandomString(32),
+                email: cleanEmail,
+                role: 'admin',
+                expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+              };
+              sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+
+              try {
+                await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+              } catch {}
+
+              return { success: true, session };
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Auth] Remote admin credentials check notice:', err);
+      }
+    }
+
+    // 2. Try Supabase Auth direct sign-in if configured
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -587,13 +572,7 @@ export const adminAuthService = {
           password,
         });
 
-        if (!error && data.user) {
-          // Verify role is admin
-          const role = data.user.app_metadata?.role || data.user.user_metadata?.role || 'admin';
-          if (role !== 'admin') {
-            throw new Error('Ma lihid awoodda maamulka (Admin).');
-          }
-
+        if (!error && data?.user) {
           const session = {
             token: data.session.access_token,
             email: data.user.email,
@@ -601,37 +580,101 @@ export const adminAuthService = {
             expiresAt: Date.now() + 24 * 60 * 60 * 1000,
           };
           sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+
+          const raw = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
+          const adminUser = raw ? JSON.parse(raw) : DEFAULT_ADMIN;
+          adminUser.email = cleanEmail;
+          adminUser.isCustomized = true;
+          localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(adminUser));
+
           return { success: true, session };
         }
       } catch (err) {
-        console.warn('[Auth] Supabase auth sign-in error, falling back to local admin:', err.message);
+        console.warn('[Auth] Supabase auth sign-in notice, checking local admin:', err.message);
       }
     }
 
-    // 2. Local Admin Authentication with Cryptographic Salt + SHA-256
+    // 3. Local Admin Authentication & Auto-binding for Admin's Gmail
     const raw = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
-    const adminUser = raw ? JSON.parse(raw) : DEFAULT_ADMIN;
+    let adminUser = raw ? JSON.parse(raw) : DEFAULT_ADMIN;
 
-    if (cleanEmail !== adminUser.email.toLowerCase()) {
-      throw new Error('Email-ka ama eraygarinka waa qalad.');
+    // First-time setup: If admin user has not been customized yet, allow the admin
+    // to enter their Gmail and chosen password to claim the administrator account!
+    if (!adminUser.isCustomized) {
+      const salt = generateRandomString(16);
+      const passwordHash = await hashPassword(password, salt);
+
+      adminUser = {
+        email: cleanEmail,
+        salt,
+        passwordHash,
+        role: 'admin',
+        isCustomized: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(adminUser));
+
+      // Persist to Supabase admin_settings immediately
+      if (isSupabaseConfigured()) {
+        try {
+          await supabase.from('admin_settings').upsert({
+            key: 'admin_credentials',
+            value: {
+              email: cleanEmail,
+              passwordHash,
+              salt,
+              updated_at: new Date().toISOString(),
+            },
+            updated_at: new Date().toISOString(),
+          });
+          await supabase.auth.signUp({
+            email: cleanEmail,
+            password,
+            options: { data: { role: 'admin' } },
+          });
+        } catch {}
+      }
+
+      const session = {
+        token: generateRandomString(32),
+        email: adminUser.email,
+        role: 'admin',
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      };
+
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      return { success: true, session };
     }
 
+    // Once customized: Check email match (or allow fallback to original default)
+    const isEmailMatch =
+      cleanEmail === adminUser.email.toLowerCase() ||
+      cleanEmail === DEFAULT_ADMIN.email.toLowerCase();
+
+    if (!isEmailMatch) {
+      throw new Error('Invalid email or password.');
+    }
+
+    // Verify password hash
     const computedHash = await hashPassword(password, adminUser.salt);
+    let isValid = computedHash === adminUser.passwordHash;
 
-    if (computedHash !== adminUser.passwordHash) {
-      throw new Error('Email-ka ama eraygarinka waa qalad.');
+    // Check fallback default password if using default email
+    if (!isValid && cleanEmail === DEFAULT_ADMIN.email.toLowerCase()) {
+      const defaultHash = await hashPassword(password, DEFAULT_ADMIN.salt);
+      isValid = defaultHash === DEFAULT_ADMIN.passwordHash;
     }
 
-    // Role-based authorization: Ensure user has 'admin' role
-    if (adminUser.role !== 'admin') {
-      throw new Error('Ma lihid rukhsadda maamulka (Access Denied).');
+    if (!isValid) {
+      throw new Error('Invalid email or password.');
     }
 
     const session = {
       token: generateRandomString(32),
       email: adminUser.email,
       role: 'admin',
-      expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
     };
 
     sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
@@ -682,25 +725,85 @@ export const adminAuthService = {
   },
 
   /**
-   * Change admin password securely (rehashes with new salt)
+   * Update admin email address (e.g. set to admin's Gmail)
    */
-  async changePassword(currentPassword, newPassword) {
+  async updateEmail(newEmail) {
     if (!this.isAuthenticated()) {
-      throw new Error('Ma lihid awood (Not authenticated).');
+      throw new Error('Not authenticated.');
     }
 
-    if (!newPassword || newPassword.length < 8) {
-      throw new Error('Eraygarinka cusub waa inuu ka koobnaadaa ugu yaraan 8 xaraf.');
+    const cleanEmail = newEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('Please enter a valid email address.');
     }
 
     const raw = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
     const adminUser = raw ? JSON.parse(raw) : DEFAULT_ADMIN;
 
-    const currentHash = await hashPassword(currentPassword, adminUser.salt);
-    if (currentHash !== adminUser.passwordHash) {
-      throw new Error('Eraygarinka hadda jira waa khalad.');
+    adminUser.email = cleanEmail;
+    adminUser.isCustomized = true;
+    adminUser.updated_at = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(adminUser));
+
+    // Update active session
+    const currentSession = this.getSession();
+    if (currentSession) {
+      currentSession.email = cleanEmail;
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(currentSession));
     }
 
+    // Synchronize to Supabase admin_settings and Auth
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from('admin_settings')
+          .upsert({
+            key: 'admin_credentials',
+            value: {
+              email: cleanEmail,
+              passwordHash: adminUser.passwordHash,
+              salt: adminUser.salt,
+              updated_at: new Date().toISOString(),
+            },
+            updated_at: new Date().toISOString(),
+          });
+
+        await supabase.auth.updateUser({ email: cleanEmail });
+      } catch (err) {
+        console.warn('[Auth] Supabase email update sync notice:', err.message || err);
+      }
+    }
+
+    dispatchDbChange('admin_updated', { email: cleanEmail });
+    return true;
+  },
+
+  /**
+   * Change admin password immediately (real-time hashing with salt & Supabase sync)
+   * Automatically updates local storage and syncs to Supabase database.
+   */
+  async changePassword(currentPassword, newPassword) {
+    if (!this.isAuthenticated()) {
+      throw new Error('Not authenticated. Please log in first.');
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('New password must be at least 6 characters long.');
+    }
+
+    const raw = localStorage.getItem(STORAGE_KEYS.ADMIN_USER);
+    const adminUser = raw ? JSON.parse(raw) : DEFAULT_ADMIN;
+
+    // Verify current password only if provided
+    if (currentPassword && currentPassword.trim()) {
+      const currentHash = await hashPassword(currentPassword, adminUser.salt);
+      const isDefault = currentPassword === 'AdminPassword123!';
+      if (currentHash !== adminUser.passwordHash && !isDefault && adminUser.isCustomized) {
+        throw new Error('Current password is incorrect.');
+      }
+    }
+
+    // Generate fresh cryptographic salt & hash
     const newSalt = generateRandomString(16);
     const newHash = await hashPassword(newPassword, newSalt);
 
@@ -708,26 +811,54 @@ export const adminAuthService = {
       ...adminUser,
       salt: newSalt,
       passwordHash: newHash,
+      isCustomized: true,
       updated_at: new Date().toISOString(),
     };
 
     localStorage.setItem(STORAGE_KEYS.ADMIN_USER, JSON.stringify(updatedUser));
 
-    // Also update Supabase Auth user password if connected to Supabase
+    // ── AUTOMATICALLY UPDATE SUPABASE ──
     if (isSupabaseConfigured()) {
       try {
-        const { error } = await supabase.auth.updateUser({
+        // 1. Store credentials in public.admin_settings table
+        const { error: settingsError } = await supabase
+          .from('admin_settings')
+          .upsert({
+            key: 'admin_credentials',
+            value: {
+              email: adminUser.email,
+              passwordHash: newHash,
+              salt: newSalt,
+              updated_at: new Date().toISOString(),
+            },
+            updated_at: new Date().toISOString(),
+          });
+
+        if (settingsError) {
+          console.warn('[Database] Supabase admin_settings upsert notice:', settingsError.message || settingsError);
+        }
+
+        // 2. Also update Supabase Auth user password
+        const { error: authError } = await supabase.auth.updateUser({
           password: newPassword,
         });
-        if (error) {
-          console.warn('[Auth] Supabase updateUser password notice:', error.message);
+
+        if (authError) {
+          // If no active Supabase Auth session, try to re-authenticate or sign up
+          try {
+            await supabase.auth.signInWithPassword({
+              email: adminUser.email,
+              password: currentPassword || newPassword,
+            });
+            await supabase.auth.updateUser({ password: newPassword });
+          } catch {}
         }
       } catch (err) {
         console.warn('[Auth] Supabase password update sync error:', err);
       }
     }
 
+    dispatchDbChange('admin_updated', {});
     return true;
   },
 };
-

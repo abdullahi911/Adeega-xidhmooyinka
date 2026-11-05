@@ -28,19 +28,19 @@ export default function AdminLogin() {
     setError('');
 
     if (!email.trim() || !password) {
-      setError('Please fill in both email and password.');
+      setError('Please fill in both Email and Password fields.');
       return;
     }
 
     setLoading(true);
     try {
       await adminAuthService.login(email, password);
-      toast.success('Welcome to the Admin Portal!');
+      toast.success('Welcome back, Administrator!');
       const destination = location.state?.from?.pathname || '/admin/dashboard';
       navigate(destination, { replace: true });
     } catch (err) {
-      setError(err.message || 'Invalid email or password.');
-      toast.error('Authentication failed.');
+      setError(err.message || 'Invalid email address or password.');
+      toast.error('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export default function AdminLogin() {
         <div className="admin-auth-nav">
           <Link to="/" className="admin-auth-back-link">
             <ArrowLeft size={16} />
-            <span>Back to Public Website</span>
+            <span>Back to Website</span>
           </Link>
         </div>
 
@@ -79,7 +79,7 @@ export default function AdminLogin() {
               </div>
               <h1 className="admin-auth-heading">Administrator Portal</h1>
               <p className="admin-auth-subtext">
-                Enter your credentials to manage internet packages, pricing, and site announcements.
+                Enter your administrator credentials to manage packages, pricing, and notifications.
               </p>
             </div>
             <div className="admin-auth-tag">
@@ -100,7 +100,7 @@ export default function AdminLogin() {
           <form onSubmit={handleSubmit} className="admin-auth-form" noValidate>
             <div className="admin-form-group">
               <label htmlFor="admin-email" className="admin-form-label">
-                Administrator Email
+                Administrator Email / Gmail
               </label>
               <div className="admin-input-wrap">
                 <Mail size={18} className="admin-input-icon" />
@@ -108,7 +108,7 @@ export default function AdminLogin() {
                   id="admin-email"
                   type="email"
                   className={`admin-input ${error ? 'admin-input--error' : ''}`}
-                  placeholder="admin@xirmo.so"
+                  placeholder="admin@gmail.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -168,7 +168,7 @@ export default function AdminLogin() {
               ) : (
                 <>
                   <Lock size={16} />
-                  <span>Sign In to Admin Portal</span>
+                  <span>Sign In</span>
                 </>
               )}
             </button>
@@ -178,10 +178,10 @@ export default function AdminLogin() {
           <div className="admin-auth-footer-notice">
             <div className="admin-auth-notice-item">
               <CheckCircle2 size={14} className="text-green" />
-              <span>256-Bit Encrypted & Role-Protected Session</span>
+              <span>Protected with 256-Bit Cryptographic Security</span>
             </div>
             <p className="admin-auth-warning">
-              This portal is restricted to authorized personnel. Public account registration is disabled.
+              This area is strictly restricted to authorized administrators. Public registration is permanently disabled.
             </p>
           </div>
         </div>

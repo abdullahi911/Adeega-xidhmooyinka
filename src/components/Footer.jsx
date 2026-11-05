@@ -101,7 +101,7 @@ export default function Footer() {
                 </button>
               ))}
               <Link to="/admin" className="footer__link" style={{ opacity: 0.65 }}>
-                Maamulka
+                {t('footer_admin')}
               </Link>
             </nav>
           </div>

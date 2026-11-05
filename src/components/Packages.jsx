@@ -151,14 +151,14 @@ export default function Packages() {
         {loading && (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text)' }}>
             <div className="admin-spinner" style={{ margin: '0 auto 1rem', width: 28, height: 28, borderColor: '#1769FF', borderTopColor: 'transparent' }} />
-            <p>Xirmooyinka ayaa la soo shubayaa...</p>
+            <p>{t('pkg_loading')}</p>
           </div>
         )}
 
         {/* ── Package Cards Grid ── */}
         {!loading && currentPackages.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--color-text)' }}>
-            <p>Hadda ma jiraan xirmooyin firfircoon oo loogu talagalay bixiyahan.</p>
+            <p>{t('pkg_empty_state')}</p>
           </div>
         ) : (
           <div className="packages__grid" role="list">
@@ -190,7 +190,7 @@ export default function Packages() {
                   {dataDisplay && (
                     <span className="package-card__bonus" style={{ background: '#EAF3FF', color: '#1769FF', borderColor: '#D0E4FF' }}>
                       <Wifi size={13} aria-hidden="true" />
-                      Xaddiga Xogta: {dataDisplay}
+                      {t('pkg_data_allowance')}: {dataDisplay}
                     </span>
                   )}
 
