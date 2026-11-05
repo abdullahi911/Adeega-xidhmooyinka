@@ -269,6 +269,10 @@
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .navbar__inner {
+    height: 64px;
+  }
+
   .navbar__links,
   .navbar__cta {
     display: none;
@@ -277,14 +281,52 @@
   .navbar__hamburger {
     display: flex;
   }
+
+  .navbar__mobile {
+    box-shadow: 0 10px 25px rgba(7, 27, 58, 0.12);
+  }
 }
 
-@media (max-width: 420px) {
-  .navbar__name-main {
-    font-size: 0.82rem;
+@media (max-width: 480px) {
+  .navbar__inner {
+    height: 60px;
+    gap: 12px;
   }
+
   .navbar__logo {
     width: 38px;
     height: 38px;
+  }
+
+  .navbar__name-main {
+    font-size: 0.88rem;
+  }
+
+  .navbar__name-sub {
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .navbar__brand {
+    gap: 8px;
+  }
+
+  .navbar__logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navbar__name-main {
+    font-size: 0.82rem;
+  }
+
+  .navbar__name-sub {
+    font-size: 0.58rem;
+  }
+
+  .navbar__hamburger {
+    width: 36px;
+    height: 36px;
   }
 }

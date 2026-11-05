@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Bell, AlertTriangle, Sparkles, Wrench, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Bell, AlertTriangle, Sparkles, Wrench, X, Pause, Play } from 'lucide-react';
 import { notificationService } from '../services/db';
+import '../styles/NotificationBanner.css';
 
 export default function NotificationBanner() {
   const [notifications, setNotifications] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [dismissedIds, setDismissedIds] = useState(() => {
     try {
       return JSON.parse(sessionStorage.getItem('xirmo_dismissed_notifs') || '[]');
@@ -38,101 +39,111 @@ export default function NotificationBanner() {
 
   if (visibleNotifications.length === 0) return null;
 
-  const currentNotif = visibleNotifications[currentIndex] || visibleNotifications[0];
+  // Primary notification determines banner accent/gradient
+  const primaryNotif =
+    visibleNotifications.find((n) => n.type === 'alert') ||
+    visibleNotifications.find((n) => n.type === 'maintenance') ||
+    visibleNotifications.find((n) => n.type === 'promotion') ||
+    visibleNotifications[0];
 
-  const handleDismiss = (id) => {
-    const updated = [...dismissedIds, id];
+  const handleDismissAll = () => {
+    const allIds = visibleNotifications.map((n) => n.id);
+    const updated = [...dismissedIds, ...allIds];
     setDismissedIds(updated);
     try {
       sessionStorage.setItem('xirmo_dismissed_notifs', JSON.stringify(updated));
     } catch {}
-    if (currentIndex >= visibleNotifications.length - 1) {
-      setCurrentIndex(0);
-    }
   };
 
   const getIcon = (type) => {
     switch (type) {
       case 'alert':
-        return <AlertTriangle size={17} className="notif-banner__icon notif-banner__icon--alert" />;
+        return <AlertTriangle size={15} className="notif-banner__icon" />;
       case 'promotion':
-        return <Sparkles size={17} className="notif-banner__icon notif-banner__icon--promo" />;
+        return <Sparkles size={15} className="notif-banner__icon" />;
       case 'maintenance':
-        return <Wrench size={17} className="notif-banner__icon notif-banner__icon--maint" />;
+        return <Wrench size={15} className="notif-banner__icon" />;
       default:
-        return <Bell size={17} className="notif-banner__icon notif-banner__icon--info" />;
+        return <Bell size={15} className="notif-banner__icon" />;
     }
   };
 
   const getBadgeText = (type) => {
     switch (type) {
       case 'alert':
-        return 'Digniin Degdeg ah';
+        return 'Digniin';
       case 'promotion':
-        return 'Qiimo Dhimis Gaar ah';
+        return 'Qiimo Dhimis';
       case 'maintenance':
         return 'Hagaajin';
       default:
-        return 'Ogeysiis Muhiim ah';
+        return 'Ogeysiis';
     }
   };
 
+  // Render announcement group (rendered twice for infinite seamless ticker)
+  const renderAnnouncementGroup = (keySuffix) => (
+    <div className="notif-banner__group" key={`group-${keySuffix}`} aria-hidden={keySuffix === 'clone'}>
+      {visibleNotifications.map((notif, idx) => (
+        <span className="notif-banner__item" key={`${notif.id}-${keySuffix}-${idx}`}>
+          <strong className="notif-banner__item-title">{notif.title}:</strong>
+          <span className="notif-banner__item-desc">{notif.description}</span>
+          <span className="notif-banner__divider" aria-hidden="true">•</span>
+        </span>
+      ))}
+    </div>
+  );
+
   return (
     <aside
-      className={`notif-banner notif-banner--${currentNotif.type || 'announcement'}`}
-      aria-label="Ogeysiisyada Website-ka"
+      className={`notif-banner notif-banner--${primaryNotif?.type || 'announcement'} ${isPaused ? 'notif-banner--paused' : ''}`}
+      aria-label="Website Announcements"
     >
       <div className="container notif-banner__inner">
-        <div className="notif-banner__content">
-          <div className="notif-banner__badge">
-            {getIcon(currentNotif.type)}
-            <span>{getBadgeText(currentNotif.type)}</span>
-          </div>
+        {/* Left Badge with Icon */}
+        <div className="notif-banner__badge">
+          {getIcon(primaryNotif?.type)}
+          <span>{getBadgeText(primaryNotif?.type)}</span>
+        </div>
 
-          <div className="notif-banner__text">
-            <strong className="notif-banner__title">{currentNotif.title}</strong>
-            <span className="notif-banner__desc"> — {currentNotif.description}</span>
+        {/* Middle Moving Marquee Ticker */}
+        <div
+          className="notif-banner__viewport"
+          title="Hover or tap to pause reading"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+        >
+          <div className="notif-banner__track">
+            {renderAnnouncementGroup('orig')}
+            {renderAnnouncementGroup('clone')}
           </div>
         </div>
 
+        {/* Right Controls: Pause/Play & Dismiss */}
         <div className="notif-banner__actions">
-          {visibleNotifications.length > 1 && (
-            <div className="notif-banner__pagination" aria-label="Beddel Ogeysiiska">
-              <button
-                className="notif-banner__nav-btn"
-                onClick={() =>
-                  setCurrentIndex((prev) => (prev > 0 ? prev - 1 : visibleNotifications.length - 1))
-                }
-                aria-label="Ogeysiiskii Hore"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="notif-banner__counter">
-                {currentIndex + 1}/{visibleNotifications.length}
-              </span>
-              <button
-                className="notif-banner__nav-btn"
-                onClick={() =>
-                  setCurrentIndex((prev) => (prev < visibleNotifications.length - 1 ? prev + 1 : 0))
-                }
-                aria-label="Ogeysiiska Xiga"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            className="notif-banner__btn"
+            onClick={() => setIsPaused((prev) => !prev)}
+            aria-label={isPaused ? 'Resume scrolling' : 'Pause scrolling'}
+            title={isPaused ? 'Resume scrolling' : 'Pause scrolling'}
+          >
+            {isPaused ? <Play size={13} /> : <Pause size={13} />}
+          </button>
 
           <button
-            className="notif-banner__close-btn"
-            onClick={() => handleDismiss(currentNotif.id)}
-            aria-label="Xir Ogeysiiska"
-            title="Xir Ogeysiiska"
+            type="button"
+            className="notif-banner__btn"
+            onClick={handleDismissAll}
+            aria-label="Dismiss announcements"
+            title="Dismiss announcements"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
       </div>
     </aside>
   );
 }
-
